@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hedgehog.Xunit", "src\Hedgehog.Xunit\Hedgehog.Xunit.fsproj", "{216BE9A2-7DCC-445F-8438-B138D8CB1FE8}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hedgehog.Xunit.Tests", "tests\Hedgehog.Xunit.Tests\Hedgehog.Xunit.Tests.fsproj", "{63A8D184-519E-4061-8A74-F1EACAF3B0D5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{216BE9A2-7DCC-445F-8438-B138D8CB1FE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{216BE9A2-7DCC-445F-8438-B138D8CB1FE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{216BE9A2-7DCC-445F-8438-B138D8CB1FE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{216BE9A2-7DCC-445F-8438-B138D8CB1FE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FE51E47F-F196-4B9F-B10C-48318DD97C68}
+	EndGlobalSection
+EndGlobal
