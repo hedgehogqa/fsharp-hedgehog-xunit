@@ -1,22 +1,91 @@
 namespace Hedgehog.Xunit
 
+open System
+open Xunit.Sdk
+open Hedgehog
+
+/// Generates arguments using GenX.auto (or autoWith if you provide an AutoGenConfig), then runs Property.check
+[<AttributeUsage(AttributeTargets.Method ||| AttributeTargets.Property, AllowMultiple = false)>]
+[<XunitTestCaseDiscoverer("Hedgehog.Xunit.XunitOverrides+PropertyTestCaseDiscoverer", "Hedgehog.Xunit")>]
+type PropertyAttribute(t) =
+  inherit Xunit.FactAttribute()
+
+  let mutable _autoGenConfig: Type = t
+
+  new() = PropertyAttribute(null)
+
+  // https://github.com/dotnet/fsharp/issues/4154 sigh
+  /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.
+  ///
+  /// Example usage:
+  ///
+  /// ```
+  ///
+  /// type Int13 = static member AnyName = { GenX.defaults with Int = Gen.constant 13 }
+  ///
+  /// [<Property(typeof<Int13>)>]
+  ///
+  /// let myTest (i:int) = ...
+  ///
+  /// ```
+  member _.AutoGenConfig
+    with get() = _autoGenConfig
+    and  set v = _autoGenConfig <- v
+
+
 module internal PropertyHelper =
-  open Hedgehog
   open System.Reflection
 
   type private MarkerRecord = class end
-  let private genxAutoBox<'T> = GenX.auto<'T> |> Gen.map box
-  let private genxAutoBoxMethodInfo =
+  let private genxAutoBoxWith<'T> x = x |> GenX.autoWith<'T> |> Gen.map box
+  let private genxAutoBoxWithMethodInfo =
     typeof<MarkerRecord>.DeclaringType.GetTypeInfo().DeclaredMethods
-    |> Seq.find (fun meth -> meth.Name = nameof(genxAutoBox))
+    |> Seq.find (fun meth -> meth.Name = nameof(genxAutoBoxWith))
+
+  module Option =
+    let requireSome msg =
+      function
+      | Some x -> x
+      | None   -> failwith msg
+    let plus (x: 'a option) (y: 'a option) =
+      match x with
+      | Some _ -> x
+      | None -> y
 
   let check (methodinfo:MethodInfo) testClassInstance =
+    let config =
+      methodinfo.CustomAttributes
+      |> Seq.filter (fun x -> x.AttributeType = typeof<PropertyAttribute>)
+      |> Seq.tryExactlyOne
+      |> Option.requireSome $"There must be exactly one {nameof(PropertyAttribute)}."
+      |> fun attribute ->
+        let ctorArgType =
+          attribute.ConstructorArguments
+          |> Seq.filter (fun x -> x.ArgumentType = typeof<Type>)
+          |> Seq.tryExactlyOne
+          |> Option.map (fun x -> x.Value :?> Type)
+        let namedArgType =
+          attribute.NamedArguments
+          |> Seq.filter(fun x -> x.TypedValue.ArgumentType = typeof<Type>)
+          |> Seq.tryExactlyOne
+          |> Option.map (fun x -> x.TypedValue.Value :?> Type)
+        Option.plus ctorArgType namedArgType
+      |> Option.map(fun t ->
+          t.GetProperties()
+          |> Seq.filter (fun x ->
+            x.GetMethod.IsStatic &&
+            x.GetMethod.ReturnType = typeof<AutoGenConfig>
+          ) |> Seq.tryExactlyOne
+          |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}"
+          |> fun x -> x.GetMethod.Invoke(null, [||])
+          :?> AutoGenConfig
+      ) |> Option.defaultValue GenX.defaults
     let gens =
       methodinfo.GetParameters()
       |> Array.map (fun p ->
-        genxAutoBoxMethodInfo
+        genxAutoBoxWithMethodInfo
           .MakeGenericMethod(p.ParameterType)
-          .Invoke(null, null)
+          .Invoke(null, [|config|])
         :?> Gen<obj>)
       |> ArrayGen.toGenTuple
     let invoke t =
@@ -26,8 +95,6 @@ module internal PropertyHelper =
       | _            -> Property.success ()
     Property.forAll gens invoke |> Property.check
 
-open System
-open Xunit.Sdk
 
 module internal XunitOverrides =
   type PropertyTestInvoker  (test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, beforeAfterAttributes, aggregator, cancellationTokenSource) =
@@ -73,9 +140,3 @@ module internal XunitOverrides =
         new PropertyTestCase(this.MessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod)
         :> IXunitTestCase
         |> Seq.singleton
-
-/// Generates arguments using Hedgehog.Experimental.GenX.auto, then runs Property.forAll
-[<AttributeUsage(AttributeTargets.Method ||| AttributeTargets.Property, AllowMultiple = false)>]
-[<XunitTestCaseDiscoverer("Hedgehog.Xunit.XunitOverrides+PropertyTestCaseDiscoverer", "Hedgehog.Xunit")>]
-type PropertyAttribute() =
-  inherit Xunit.FactAttribute()
