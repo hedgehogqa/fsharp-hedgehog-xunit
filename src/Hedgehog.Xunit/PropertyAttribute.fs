@@ -93,7 +93,26 @@ module internal PropertyHelper =
       |> function
       | :? bool as b -> Property.ofBool b
       | _            -> Property.success ()
+#if DEBUG
+    try
+      Property.forAll gens invoke |> Property.check
+      //methodinfo.CustomAttributes
+      //|> Seq.tryFind (fun x -> x.AttributeType = typeof<AssertExceptionRegexAttribute>)
+      //|> function
+      //| Some _ -> failwith "No exception thrown"
+      //| None -> ()
+    with e ->
+      methodinfo.CustomAttributes
+      |> Seq.tryFind (fun x -> x.AttributeType = typeof<AssertExceptionRegexAttribute>)
+      |> function
+      | Some x ->
+        let pattern = x.ConstructorArguments.[0].Value :?> string
+        if not <| System.Text.RegularExpressions.Regex.IsMatch(e.Message, pattern) then
+          raise e
+      | None -> raise e
+#else
     Property.forAll gens invoke |> Property.check
+#endif
 
 
 module internal XunitOverrides =
