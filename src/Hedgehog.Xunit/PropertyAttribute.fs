@@ -7,12 +7,13 @@ open Hedgehog
 /// Generates arguments using GenX.auto (or autoWith if you provide an AutoGenConfig), then runs Property.check
 [<AttributeUsage(AttributeTargets.Method ||| AttributeTargets.Property, AllowMultiple = false)>]
 [<XunitTestCaseDiscoverer("Hedgehog.Xunit.XunitOverrides+PropertyTestCaseDiscoverer", "Hedgehog.Xunit")>]
-type PropertyAttribute(t) =
-  inherit Xunit.FactAttribute()
+type PropertyAttribute(t, skip) =
+  inherit Xunit.FactAttribute(Skip = skip)
 
   let mutable _autoGenConfig: Type = t
 
   new() = PropertyAttribute(null)
+  new(t) = PropertyAttribute(t, null)
 
   // https://github.com/dotnet/fsharp/issues/4154 sigh
   /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.
@@ -52,36 +53,38 @@ module internal PropertyHelper =
       | Some _ -> x
       | None -> y
 
-  let check (methodinfo:MethodInfo) testClassInstance =
-    let config =
-      methodinfo.CustomAttributes
-      |> Seq.filter (fun x -> x.AttributeType = typeof<PropertyAttribute>)
-      |> Seq.tryExactlyOne
-      |> Option.requireSome $"There must be exactly one {nameof(PropertyAttribute)}."
-      |> fun attribute ->
-        let ctorArgType =
-          attribute.ConstructorArguments
-          |> Seq.filter (fun x -> x.ArgumentType = typeof<Type>)
-          |> Seq.tryExactlyOne
-          |> Option.map (fun x -> x.Value :?> Type)
-        let namedArgType =
-          attribute.NamedArguments
-          |> Seq.filter(fun x -> x.TypedValue.ArgumentType = typeof<Type>)
-          |> Seq.tryExactlyOne
-          |> Option.map (fun x -> x.TypedValue.Value :?> Type)
-        Option.plus ctorArgType namedArgType
-      |> Option.map(fun t ->
-          t.GetProperties()
-          |> Seq.filter (fun x ->
-            x.GetMethod.IsStatic &&
-            x.GetMethod.ReturnType = typeof<AutoGenConfig>
-          ) |> Seq.tryExactlyOne
-          |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}"
-          |> fun x -> x.GetMethod.Invoke(null, [||])
-          :?> AutoGenConfig
-      ) |> Option.defaultValue GenX.defaults
+  let config (testMethod:MethodInfo) =
+    testMethod.CustomAttributes
+    |> Seq.filter (fun x -> x.AttributeType = typeof<PropertyAttribute>)
+    |> Seq.tryExactlyOne
+    |> Option.requireSome $"There must be exactly one {nameof(PropertyAttribute)}."
+    |> fun attribute ->
+      let ctorArgType =
+        attribute.ConstructorArguments
+        |> Seq.filter (fun x -> x.ArgumentType = typeof<Type>)
+        |> Seq.tryExactlyOne
+        |> Option.map (fun x -> x.Value :?> Type)
+      let namedArgType =
+        attribute.NamedArguments
+        |> Seq.filter(fun x -> x.TypedValue.ArgumentType = typeof<Type>)
+        |> Seq.tryExactlyOne
+        |> Option.map (fun x -> x.TypedValue.Value :?> Type)
+      Option.plus ctorArgType namedArgType
+    |> Option.map(fun t ->
+        t.GetProperties()
+        |> Seq.filter (fun x ->
+          x.GetMethod.IsStatic &&
+          x.GetMethod.ReturnType = typeof<AutoGenConfig>
+        ) |> Seq.tryExactlyOne
+        |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}"
+        |> fun x -> x.GetMethod.Invoke(null, [||])
+        :?> AutoGenConfig
+    ) |> Option.defaultValue GenX.defaults
+
+  let check (testMethod:MethodInfo) testClassInstance =
+    let config = config testMethod
     let gens =
-      methodinfo.GetParameters()
+      testMethod.GetParameters()
       |> Array.map (fun p ->
         genxAutoBoxWithMethodInfo
           .MakeGenericMethod(p.ParameterType)
@@ -89,7 +92,7 @@ module internal PropertyHelper =
         :?> Gen<obj>)
       |> ArrayGen.toGenTuple
     let invoke t =
-      methodinfo.Invoke(testClassInstance, Microsoft.FSharp.Reflection.FSharpValue.GetTupleFields t)
+      testMethod.Invoke(testClassInstance, Microsoft.FSharp.Reflection.FSharpValue.GetTupleFields t)
       |> function
       | :? bool as b -> Property.ofBool b
       | _            -> Property.success ()
@@ -102,7 +105,7 @@ module internal PropertyHelper =
       //| Some _ -> failwith "No exception thrown"
       //| None -> ()
     with e ->
-      methodinfo.CustomAttributes
+      testMethod.CustomAttributes
       |> Seq.tryFind (fun x -> x.AttributeType = typeof<AssertExceptionRegexAttribute>)
       |> function
       | Some x ->

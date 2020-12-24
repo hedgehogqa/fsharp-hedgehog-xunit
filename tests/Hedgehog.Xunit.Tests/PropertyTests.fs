@@ -73,14 +73,28 @@ type PropertyClassTests(output: Xunit.Abstractions.ITestOutputHelper) =
     if i >= 2 && s.Contains "b" then failwith "Some error."
 
 module ``Property with AutoGenConfig tests`` =
+  open Xunit
   open Hedgehog
+  open System
 
-  type Int13 = static member __ = { GenX.defaults with Int = Gen.constant 13 }
-  [<Property(                typeof<Int13>)>]
-  let ``Uses custom Int gen``                i = i = 13
-  [<Property(AutoGenConfig = typeof<Int13>)>]
-  let ``Uses custom Int gen with named arg`` i = i = 13
+  module NormalTests =
 
-  type NonstaticProperty = member _.__ = GenX.defaults
-  [<Property(typeof<NonstaticProperty>)>]
-  let ``Instance property fails`` () = ()
+    type Int13 = static member __ = { GenX.defaults with Int = Gen.constant 13 }
+    [<Property(                typeof<Int13>)>]
+    let ``Uses custom Int gen``                i = i = 13
+    [<Property(AutoGenConfig = typeof<Int13>)>]
+    let ``Uses custom Int gen with named arg`` i = i = 13
+
+  module FailingTests =
+
+    type private Marker = class end
+    let [<Literal>] skipReason = "Skipping because it's just here to be the target of a [<Fact>] test"
+
+    type NonstaticProperty = member _.__ = GenX.defaults
+    [<Property(typeof<NonstaticProperty>, skipReason)>]
+    let ``Instance property fails, skipped`` () = ()
+    [<Fact>]
+    let ``Instance property fails`` () =
+      let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof(``Instance property fails, skipped``))
+      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.check testMethod null)
+      Assert.Equal(e.Message, "Hedgehog.Xunit.Tests.Property with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one static property that returns an AutoGenConfig")
