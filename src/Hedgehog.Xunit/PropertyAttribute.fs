@@ -34,6 +34,10 @@ type PropertyAttribute(t, skip) =
     and  set v = _autoGenConfig <- v
 
 
+///Set a default AutoGenConfig for all [<Property>] attributed methods in this class/module
+[<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
+type public PropertiesAttribute(t) = inherit PropertyAttribute(t)
+
 module internal PropertyHelper =
   open System.Reflection
 
@@ -48,29 +52,35 @@ module internal PropertyHelper =
       function
       | Some x -> x
       | None   -> failwith msg
-    let plus (x: 'a option) (y: 'a option) =
+    let (++) (x: 'a option) (y: 'a option) =
       match x with
       | Some _ -> x
       | None -> y
 
-  let config (testMethod:MethodInfo) =
+  let ctorArgType (attribute:CustomAttributeData) =
+    attribute.ConstructorArguments
+    |> Seq.filter (fun x -> x.ArgumentType = typeof<Type>)
+    |> Seq.tryExactlyOne
+    |> Option.map (fun x -> x.Value :?> Type)
+  let namedArgType (attribute:CustomAttributeData) =
+    attribute.NamedArguments
+    |> Seq.filter(fun x -> x.TypedValue.ArgumentType = typeof<Type>)
+    |> Seq.tryExactlyOne
+    |> Option.map (fun x -> x.TypedValue.Value :?> Type)
+
+  open Option
+  let config (testMethod:MethodInfo) (classProperties:CustomAttributeData option) =
     testMethod.CustomAttributes
     |> Seq.filter (fun x -> x.AttributeType = typeof<PropertyAttribute>)
     |> Seq.tryExactlyOne
     |> Option.requireSome $"There must be exactly one {nameof(PropertyAttribute)}."
-    |> fun attribute ->
-      let ctorArgType =
-        attribute.ConstructorArguments
-        |> Seq.filter (fun x -> x.ArgumentType = typeof<Type>)
-        |> Seq.tryExactlyOne
-        |> Option.map (fun x -> x.Value :?> Type)
-      let namedArgType =
-        attribute.NamedArguments
-        |> Seq.filter(fun x -> x.TypedValue.ArgumentType = typeof<Type>)
-        |> Seq.tryExactlyOne
-        |> Option.map (fun x -> x.TypedValue.Value :?> Type)
-      Option.plus ctorArgType namedArgType
-    |> Option.map(fun t ->
+    |> fun methodProperty ->
+      let methodCtor  =             ctorArgType  methodProperty
+      let methodNamed =             namedArgType methodProperty
+      let classCtor   = Option.bind ctorArgType  classProperties
+      let classNamed  = Option.bind namedArgType classProperties
+      methodCtor ++ methodNamed ++ classCtor ++ classNamed
+    |> Option.map(fun t ->  
         t.GetProperties()
         |> Seq.filter (fun x ->
           x.GetMethod.IsStatic &&
@@ -81,8 +91,11 @@ module internal PropertyHelper =
         :?> AutoGenConfig
     ) |> Option.defaultValue GenX.defaults
 
-  let check (testMethod:MethodInfo) testClassInstance =
-    let config = config testMethod
+  let check (testMethod:MethodInfo) (testClass:Type) testClassInstance =
+    let config =
+      testClass.CustomAttributes
+      |> Seq.tryFind (fun x -> x.AttributeType = typeof<PropertiesAttribute>)
+      |> config testMethod
     let gens =
       testMethod.GetParameters()
       |> Array.map (fun p ->
@@ -104,7 +117,7 @@ module internal XunitOverrides =
     inherit XunitTestInvoker(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, beforeAfterAttributes, aggregator, cancellationTokenSource)
   
     override this.CallTestMethod testClassInstance =
-      PropertyHelper.check this.TestMethod testClassInstance
+      PropertyHelper.check this.TestMethod this.TestClass testClassInstance
       null
   
   type PropertyTestRunner  (test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource) =
