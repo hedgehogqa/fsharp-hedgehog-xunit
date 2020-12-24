@@ -30,32 +30,31 @@ type PropertyAttribute(t, skip) =
   ///
   /// ```
   member _.AutoGenConfig
-    with get() = _autoGenConfig
-    and  set v = _autoGenConfig <- v
+    with set v = _autoGenConfig <- v
 
 
 ///Set a default AutoGenConfig for all [<Property>] attributed methods in this class/module
 [<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
-type public PropertiesAttribute(t) = inherit PropertyAttribute(t)
+type PropertiesAttribute(t) = inherit PropertyAttribute(t)
 
 module internal PropertyHelper =
-  open System.Reflection
-
-  type private MarkerRecord = class end
-  let private genxAutoBoxWith<'T> x = x |> GenX.autoWith<'T> |> Gen.map box
-  let private genxAutoBoxWithMethodInfo =
-    typeof<MarkerRecord>.DeclaringType.GetTypeInfo().DeclaredMethods
-    |> Seq.find (fun meth -> meth.Name = nameof(genxAutoBoxWith))
 
   module Option =
     let requireSome msg =
       function
       | Some x -> x
       | None   -> failwith msg
-    let (++) (x: 'a option) (y: 'a option) =
-      match x with
-      | Some _ -> x
-      | None -> y
+  let (++) (x: 'a option) (y: 'a option) =
+    match x with
+    | Some _ -> x
+    | None -> y
+
+  open System.Reflection
+  type private Marker = class end
+  let private genxAutoBoxWith<'T> x = x |> GenX.autoWith<'T> |> Gen.map box
+  let private genxAutoBoxWithMethodInfo =
+    typeof<Marker>.DeclaringType.GetTypeInfo().DeclaredMethods
+    |> Seq.find (fun m -> m.Name = nameof(genxAutoBoxWith))
 
   let ctorArgType (attribute:CustomAttributeData) =
     attribute.ConstructorArguments
@@ -68,25 +67,26 @@ module internal PropertyHelper =
     |> Seq.tryExactlyOne
     |> Option.map (fun x -> x.TypedValue.Value :?> Type)
 
-  open Option
-  let config (testMethod:MethodInfo) (classProperties:CustomAttributeData option) =
+  let getConfig (testMethod:MethodInfo) (testClass:Type) =
+    let classProperties =
+      testClass.CustomAttributes
+      |> Seq.tryFind (fun x -> x.AttributeType = typeof<PropertiesAttribute>)
     testMethod.CustomAttributes
     |> Seq.filter (fun x -> x.AttributeType = typeof<PropertyAttribute>)
-    |> Seq.tryExactlyOne
-    |> Option.requireSome $"There must be exactly one {nameof(PropertyAttribute)}."
+    |> Seq.exactlyOne
     |> fun methodProperty ->
       let methodCtor  =             ctorArgType  methodProperty
       let methodNamed =             namedArgType methodProperty
       let classCtor   = Option.bind ctorArgType  classProperties
       let classNamed  = Option.bind namedArgType classProperties
       methodCtor ++ methodNamed ++ classCtor ++ classNamed
-    |> Option.map(fun t ->  
-        t.GetProperties()
-        |> Seq.filter (fun x ->
-          x.GetMethod.IsStatic &&
-          x.GetMethod.ReturnType = typeof<AutoGenConfig>
-        ) |> Seq.tryExactlyOne
-        |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}.
+    |> Option.map(fun t ->
+      t.GetProperties()
+      |> Seq.filter (fun x ->
+        x.GetMethod.IsStatic &&
+        x.GetMethod.ReturnType = typeof<AutoGenConfig>
+      ) |> Seq.tryExactlyOne
+      |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}.
 
 An example type definition:
 
@@ -95,15 +95,12 @@ type {t.Name} =
     {{ GenX.defaults with
         Int = Gen.constant 13 }}
 "
-        |> fun x -> x.GetMethod.Invoke(null, [||])
-        :?> AutoGenConfig
+      |> fun x -> x.GetMethod.Invoke(null, [||])
+      :?> AutoGenConfig
     ) |> Option.defaultValue GenX.defaults
 
-  let check (testMethod:MethodInfo) (testClass:Type) testClassInstance =
-    let config =
-      testClass.CustomAttributes
-      |> Seq.tryFind (fun x -> x.AttributeType = typeof<PropertiesAttribute>)
-      |> config testMethod
+  let check (testMethod:MethodInfo) testClass testClassInstance =
+    let config = getConfig testMethod testClass
     let gens =
       testMethod.GetParameters()
       |> Array.map (fun p ->
