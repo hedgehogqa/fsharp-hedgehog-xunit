@@ -98,3 +98,12 @@ module ``Property with AutoGenConfig tests`` =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof(``Instance property fails, skipped``))
       let e = Assert.Throws<Exception>(fun () -> PropertyHelper.check testMethod null)
       Assert.Equal(e.Message, "Hedgehog.Xunit.Tests.Property with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one static property that returns an AutoGenConfig")
+
+    type NonAutoGenConfig = static member __ = ()
+    [<Property(typeof<NonAutoGenConfig>, skipReason)>]
+    let ``Non AutoGenConfig static property fails, skipped`` () = ()
+    [<Fact>]
+    let ``Non AutoGenConfig static property fails`` () =
+      let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof(``Non AutoGenConfig static property fails, skipped``))
+      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.check testMethod null)
+      Assert.Equal(e.Message, "Hedgehog.Xunit.Tests.Property with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one static property that returns an AutoGenConfig")
