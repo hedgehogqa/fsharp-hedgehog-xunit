@@ -86,7 +86,15 @@ module internal PropertyHelper =
           x.GetMethod.IsStatic &&
           x.GetMethod.ReturnType = typeof<AutoGenConfig>
         ) |> Seq.tryExactlyOne
-        |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}"
+        |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}.
+
+An example type definition:
+
+type {t.Name} =
+  static member __ =
+    {{ GenX.defaults with
+        Int = Gen.constant 13 }}
+"
         |> fun x -> x.GetMethod.Invoke(null, [||])
         :?> AutoGenConfig
     ) |> Option.defaultValue GenX.defaults

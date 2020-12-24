@@ -105,7 +105,15 @@ module ``Property module with AutoGenConfig tests`` =
     let ``Instance property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof(``Instance property fails, skipped``))
       let e = Assert.Throws<Exception>(fun () -> PropertyHelper.check testMethod typeof<Marker>.DeclaringType null)
-      Assert.Equal(e.Message, "Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one static property that returns an AutoGenConfig")
+      Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one static property that returns an AutoGenConfig.
+
+An example type definition:
+
+type NonstaticProperty =
+  static member __ =
+    { GenX.defaults with
+        Int = Gen.constant 13 }
+", e.Message)
 
     type NonAutoGenConfig = static member __ = ()
     [<Property(typeof<NonAutoGenConfig>, skipReason)>]
@@ -114,7 +122,15 @@ module ``Property module with AutoGenConfig tests`` =
     let ``Non AutoGenConfig static property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof(``Non AutoGenConfig static property fails, skipped``))
       let e = Assert.Throws<Exception>(fun () -> PropertyHelper.check testMethod typeof<Marker>.DeclaringType null)
-      Assert.Equal(e.Message, "Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one static property that returns an AutoGenConfig")
+      Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one static property that returns an AutoGenConfig.
+
+An example type definition:
+
+type NonAutoGenConfig =
+  static member __ =
+    { GenX.defaults with
+        Int = Gen.constant 13 }
+", e.Message)
 
 type Int2718 = static member __ = { GenX.defaults with Int = Gen.constant 2718 }
 
