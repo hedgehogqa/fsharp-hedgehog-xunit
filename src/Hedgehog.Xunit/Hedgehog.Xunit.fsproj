@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <Compile Include="ArrayGen.fs" />
-    <Compile Include="AssertExceptionRegexAttribute.fs" />
     <Compile Include="PropertyAttribute.fs" />
   </ItemGroup>
 
