@@ -7,13 +7,15 @@ open Hedgehog
 /// Generates arguments using GenX.auto (or autoWith if you provide an AutoGenConfig), then runs Property.check
 [<AttributeUsage(AttributeTargets.Method ||| AttributeTargets.Property, AllowMultiple = false)>]
 [<XunitTestCaseDiscoverer("Hedgehog.Xunit.XunitOverrides+PropertyTestCaseDiscoverer", "Hedgehog.Xunit")>]
-type PropertyAttribute(t, skip) =
+type PropertyAttribute(autoGenConfig: Type, tests:int, skip) =
   inherit Xunit.FactAttribute(Skip = skip)
 
-  let mutable _autoGenConfig: Type = t
-
-  new() = PropertyAttribute(null)
-  new(t) = PropertyAttribute(t, null)
+  new()                     = PropertyAttribute(null         , 100  , null)
+  new(autoGenConfig)        = PropertyAttribute(autoGenConfig, 100  , null)
+  new(autoGenConfig, tests) = PropertyAttribute(autoGenConfig, tests, null)
+  new(autoGenConfig, skip)  = PropertyAttribute(autoGenConfig, 100  , skip)
+  new(tests)                = PropertyAttribute(null         , tests, null)
+  new(skip)                 = PropertyAttribute(null         , 100  , skip)
 
   // https://github.com/dotnet/fsharp/issues/4154 sigh
   /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.
@@ -29,13 +31,16 @@ type PropertyAttribute(t, skip) =
   /// let myTest (i:int) = ...
   ///
   /// ```
-  member _.AutoGenConfig
-    with set v = _autoGenConfig <- v
+  member _.AutoGenConfig with set (_: Type) = ()
+  member _.Tests         with set (_: int ) = ()
 
 
 ///Set a default AutoGenConfig for all [<Property>] attributed methods in this class/module
 [<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
-type PropertiesAttribute(t) = inherit PropertyAttribute(t)
+type PropertiesAttribute(autoGenConfig: Type, tests: int) =
+  inherit PropertyAttribute(autoGenConfig, tests)
+  new(autoGenConfig:Type) = PropertiesAttribute(autoGenConfig, 100  )
+  new(tests        :int ) = PropertiesAttribute(null         , tests)
 
 module internal PropertyHelper =
 
@@ -56,37 +61,46 @@ module internal PropertyHelper =
     typeof<Marker>.DeclaringType.GetTypeInfo().DeclaredMethods
     |> Seq.find (fun m -> m.Name = nameof(genxAutoBoxWith))
 
-  let ctorArgType (attribute:CustomAttributeData) =
+  let ctorArg<'A> (attribute:CustomAttributeData) =
     attribute.ConstructorArguments
-    |> Seq.filter (fun x -> x.ArgumentType = typeof<Type>)
+    |> Seq.filter (fun x -> x.ArgumentType = typeof<'A>)
     |> Seq.tryExactlyOne
-    |> Option.map (fun x -> x.Value :?> Type)
-  let namedArgType (attribute:CustomAttributeData) =
+    |> Option.map (fun x -> x.Value :?> 'A)
+  let namedArg<'A> (attribute:CustomAttributeData) =
     attribute.NamedArguments
-    |> Seq.filter(fun x -> x.TypedValue.ArgumentType = typeof<Type>)
+    |> Seq.filter(fun x -> x.TypedValue.ArgumentType = typeof<'A>)
     |> Seq.tryExactlyOne
-    |> Option.map (fun x -> x.TypedValue.Value :?> Type)
+    |> Option.map (fun x -> x.TypedValue.Value :?> 'A)
 
-  let getConfig (testMethod:MethodInfo) (testClass:Type) =
+  let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
     let classProperties =
       testClass.CustomAttributes
       |> Seq.tryFind (fun x -> x.AttributeType = typeof<PropertiesAttribute>)
-    testMethod.CustomAttributes
-    |> Seq.filter (fun x -> x.AttributeType = typeof<PropertyAttribute>)
-    |> Seq.exactlyOne
-    |> fun methodProperty ->
-      let methodCtor  =             ctorArgType  methodProperty
-      let methodNamed =             namedArgType methodProperty
-      let classCtor   = Option.bind ctorArgType  classProperties
-      let classNamed  = Option.bind namedArgType classProperties
-      methodCtor ++ methodNamed ++ classCtor ++ classNamed
-    |> Option.map(fun t ->
-      t.GetProperties()
-      |> Seq.filter (fun x ->
-        x.GetMethod.IsStatic &&
-        x.GetMethod.ReturnType = typeof<AutoGenConfig>
-      ) |> Seq.tryExactlyOne
-      |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}.
+    let configType, tests =
+      testMethod.CustomAttributes
+      |> Seq.filter (fun x -> x.AttributeType = typeof<PropertyAttribute>)
+      |> Seq.exactlyOne
+      |> fun methodProperty ->
+        let methodCtorT  =             ctorArg<Type>  methodProperty
+        let methodNamedT =             namedArg<Type> methodProperty
+        let classCtorT   = Option.bind ctorArg<Type>  classProperties
+        let classNamedT  = Option.bind namedArg<Type> classProperties
+        let methodCtorI  =             ctorArg<int>   methodProperty
+        let methodNamedI =             namedArg<int>  methodProperty
+        let classCtorI   = Option.bind ctorArg<int>   classProperties
+        let classNamedI  = Option.bind namedArg<int>  classProperties
+        methodCtorT ++ methodNamedT ++ classCtorT ++ classNamedT,
+        methodCtorI ++ methodNamedI ++ classCtorI ++ classNamedI
+    let config =
+      match configType with
+      | None -> GenX.defaults
+      | Some t ->
+        t.GetProperties()
+        |> Seq.filter (fun p ->
+          p.GetMethod.IsStatic &&
+          p.GetMethod.ReturnType = typeof<AutoGenConfig>
+        ) |> Seq.tryExactlyOne
+        |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}.
 
 An example type definition:
 
@@ -94,13 +108,12 @@ type {t.Name} =
   static member __ =
     {{ GenX.defaults with
         Int = Gen.constant 13 }}
-"
-      |> fun x -> x.GetMethod.Invoke(null, [||])
-      :?> AutoGenConfig
-    ) |> Option.defaultValue GenX.defaults
+"       |> fun x -> x.GetMethod.Invoke(null, [||])
+        :?> AutoGenConfig
+    config, (tests |> Option.defaultValue 100 |> LanguagePrimitives.Int32WithMeasure)
 
   let report (testMethod:MethodInfo) testClass testClassInstance =
-    let config = getConfig testMethod testClass
+    let config, tests = parseAttributes testMethod testClass
     let gens =
       testMethod.GetParameters()
       |> Array.map (fun p ->
@@ -114,7 +127,7 @@ type {t.Name} =
       |> function
       | :? bool as b -> Property.ofBool b
       | _            -> Property.success ()
-    Property.forAll gens invoke |> Property.report
+    Property.forAll gens invoke |> Property.report' tests
 
 
 module internal XunitOverrides =

@@ -57,7 +57,7 @@ module ``Property module tests`` =
   let ``Can generate an int and string`` (i: int, s: string) =
     printfn "Test input: %i, %s" i s
   
-  [<Property(Skip = skipReason)>]
+  [<Property(Tests = 1000, Skip = skipReason)>]
   let ``Can shrink an int and string, skipped`` (i: int, s: string) =
     if i >= 2 && s.Contains "b" then failwith "Some error."
   [<Fact>]
@@ -99,7 +99,7 @@ module ``Property module with AutoGenConfig tests`` =
     [<Fact>]
     let ``Instance property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Instance property fails, skipped``)
-      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.getConfig testMethod typeof<Marker>.DeclaringType |> ignore)
+      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
       Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one static property that returns an AutoGenConfig.
 
 An example type definition:
@@ -116,7 +116,7 @@ type NonstaticProperty =
     [<Fact>]
     let ``Non AutoGenConfig static property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Non AutoGenConfig static property fails, skipped``)
-      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.getConfig testMethod typeof<Marker>.DeclaringType |> ignore)
+      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
       Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one static property that returns an AutoGenConfig.
 
 An example type definition:
@@ -129,7 +129,7 @@ type NonAutoGenConfig =
 
 type Int2718 = static member __ = { GenX.defaults with Int = Gen.constant 2718 }
 
-[<Properties(typeof<Int13>)>]
+[<Properties(typeof<Int13>, 200)>]
 module ``Module with <Properties> tests`` =
 
   [<Property>]
@@ -139,6 +139,23 @@ module ``Module with <Properties> tests`` =
   [<Property(typeof<Int2718>)>]
   let ``Module <Properties> is overriden by Method <Property>`` (i: int) =
     i = 2718
+
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+
+  [<Fact>]
+  let ``Module <Properties> tests (count) works`` () =
+    let testMethod = getMethod (nameof ``Module <Properties> works``)
+    let _, tests = PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType
+    Assert.Equal(200, tests)
+
+  [<Property(Tests = 300)>]
+  let ``Module <Properties> tests (count) is overriden by Method <Property>, skipped`` (_: int) = ()
+  [<Fact>]
+  let ``Module <Properties> tests (count) is overriden by Method <Property>`` () =
+    let testMethod = getMethod (nameof ``Module <Properties> tests (count) is overriden by Method <Property>, skipped``)
+    let _, tests = PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType
+    Assert.Equal(300, tests)
 
 [<Properties(typeof<Int13>)>]
 type ``Class with <Properties> tests``(output: Xunit.Abstractions.ITestOutputHelper) =
