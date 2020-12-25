@@ -99,7 +99,7 @@ type {t.Name} =
       :?> AutoGenConfig
     ) |> Option.defaultValue GenX.defaults
 
-  let check (testMethod:MethodInfo) testClass testClassInstance =
+  let report (testMethod:MethodInfo) testClass testClassInstance =
     let config = getConfig testMethod testClass
     let gens =
       testMethod.GetParameters()
@@ -114,7 +114,7 @@ type {t.Name} =
       |> function
       | :? bool as b -> Property.ofBool b
       | _            -> Property.success ()
-    Property.forAll gens invoke |> Property.check
+    Property.forAll gens invoke |> Property.report
 
 
 module internal XunitOverrides =
@@ -122,7 +122,8 @@ module internal XunitOverrides =
     inherit XunitTestInvoker(test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, beforeAfterAttributes, aggregator, cancellationTokenSource)
   
     override this.CallTestMethod testClassInstance =
-      PropertyHelper.check this.TestMethod this.TestClass testClassInstance
+      PropertyHelper.report this.TestMethod this.TestClass testClassInstance
+      |> Report.tryRaise
       null
   
   type PropertyTestRunner  (test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource) =

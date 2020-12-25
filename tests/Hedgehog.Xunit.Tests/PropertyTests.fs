@@ -17,17 +17,18 @@ module ``Property module tests`` =
 
   type private Marker = class end
   let getMethod = typeof<Marker>.DeclaringType.GetMethod
-  let assertMatch methodName =
-    Assert.Throws<FailedException>(fun () -> PropertyHelper.check (getMethod methodName) typeof<Marker>.DeclaringType null)
-    |> assertMatch
-
+  let assertShrunk methodName expected =
+    let report = PropertyHelper.report (getMethod methodName) typeof<Marker>.DeclaringType null
+    match report.Status with
+    | Status.Failed(_, journal) ->
+      Assert.Equal(expected, Journal.toList journal |> Seq.head)
+    | _ -> failwith "impossible"
+    
   [<Property(Skip = skipReason)>]
   let ``fails for false, skipped`` (_: int) = false
   [<Fact>]
   let ``fails for false`` () =
-    assertMatch
-      (nameof(``fails for false, skipped``))
-      """\*\*\* Failed! Falsifiable \(after 1 test\):\s+\(0\)"""
+    assertShrunk (nameof ``fails for false, skipped``) "(0)"
 
   [<Property>]
   let ``Can generate an int`` (i: int) =
@@ -38,9 +39,7 @@ module ``Property module tests`` =
     if i >= 50 then failwith "Some error."
   [<Fact>]
   let ``Can shrink an int`` () =
-    assertMatch
-      (nameof(``Can shrink an int, skipped``))
-      """\*\*\* Failed! Falsifiable \(after \d+ tests(?: and \d+ shrinks?)?\):\s+\(50\)"""
+    assertShrunk (nameof ``Can shrink an int, skipped``) "(50)"
 
   [<Property>]
   let ``Can generate two ints`` (i1: int, i2: int) =
@@ -52,9 +51,7 @@ module ``Property module tests`` =
        i2 >= 20 then failwith "Some error."
   [<Fact>]
   let ``Can shrink both ints`` () =
-    assertMatch
-      (nameof(``Can shrink both ints, skipped``))
-      """\*\*\* Failed! Falsifiable \(after \d+ tests(?: and \d+ shrinks?)?\):\s+\(10, 20\)"""
+    assertShrunk (nameof ``Can shrink both ints, skipped``) "(10, 20)"
   
   [<Property>]
   let ``Can generate an int and string`` (i: int, s: string) =
@@ -65,9 +62,7 @@ module ``Property module tests`` =
     if i >= 2 && s.Contains "b" then failwith "Some error."
   [<Fact>]
   let ``Can shrink an int and string`` () =
-    assertMatch
-      (nameof(``Can shrink an int and string, skipped``))
-      """\*\*\* Failed! Falsifiable \(after \d+ tests(?: and \d+ shrinks?)?\):\s+\(2, \"b\"\)"""
+    assertShrunk (nameof ``Can shrink an int and string, skipped``) "(2, \"b\")"
 
 type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
 
@@ -103,8 +98,8 @@ module ``Property module with AutoGenConfig tests`` =
     let ``Instance property fails, skipped`` () = ()
     [<Fact>]
     let ``Instance property fails`` () =
-      let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof(``Instance property fails, skipped``))
-      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.check testMethod typeof<Marker>.DeclaringType null)
+      let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Instance property fails, skipped``)
+      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.getConfig testMethod typeof<Marker>.DeclaringType |> ignore)
       Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one static property that returns an AutoGenConfig.
 
 An example type definition:
@@ -120,8 +115,8 @@ type NonstaticProperty =
     let ``Non AutoGenConfig static property fails, skipped`` () = ()
     [<Fact>]
     let ``Non AutoGenConfig static property fails`` () =
-      let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof(``Non AutoGenConfig static property fails, skipped``))
-      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.check testMethod typeof<Marker>.DeclaringType null)
+      let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Non AutoGenConfig static property fails, skipped``)
+      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.getConfig testMethod typeof<Marker>.DeclaringType |> ignore)
       Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one static property that returns an AutoGenConfig.
 
 An example type definition:
