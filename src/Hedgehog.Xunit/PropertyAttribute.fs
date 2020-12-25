@@ -116,7 +116,9 @@ type {t.Name} =
     let config, tests = parseAttributes testMethod testClass
     let gens =
       testMethod.GetParameters()
-      |> Array.map (fun p ->
+      |> Array.mapi (fun i p ->
+        if p.ParameterType.IsGenericParameter then
+          failwith $"The parameter type '{p.ParameterType.Name}' at index {i} is generic. A type annotation is required for GenX.auto to work."
         genxAutoBoxWithMethodInfo
           .MakeGenericMethod(p.ParameterType)
           .Invoke(null, [|config|])

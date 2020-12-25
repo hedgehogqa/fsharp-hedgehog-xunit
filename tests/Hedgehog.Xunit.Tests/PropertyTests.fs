@@ -7,9 +7,6 @@ open Hedgehog.Xunit
 
 module Common =
   let [<Literal>] skipReason = "Skipping because it's just here to be the target of a [<Fact>] test"
-  let assertMatch (e: Exception) pattern =
-    System.Text.RegularExpressions.Regex.IsMatch(e.Message, pattern)
-    |> Assert.True
 
 open Common
 
@@ -63,6 +60,52 @@ module ``Property module tests`` =
   [<Fact>]
   let ``Can shrink an int and string`` () =
     assertShrunk (nameof ``Can shrink an int and string, skipped``) "(2, \"b\")"
+
+  type CustomRecord = { Herp: int; Derp: string }
+  [<Property>]
+  let ``Works up to 26 parameters`` (
+                                    a: string,
+                                    b: char,
+                                    c: double,
+                                    d: bool,
+                                    e: DateTime,
+                                    f: DateTimeOffset,
+                                    g: string list,
+                                    h: char list,
+                                    i: int,
+                                    j: int array,
+                                    k: char array,
+                                    l: DateTime array,
+                                    m: DateTimeOffset array,
+                                    n: CustomRecord option,
+                                    o: DateTime option,
+                                    p: Result<string, string>,
+                                    q: Result<string, int>,
+                                    r: Result<int, int>,
+                                    s: Result<int, string>,
+                                    t: Result<DateTime, string>,
+                                    u: Result<CustomRecord, string>,
+                                    v: Result<DateTimeOffset, DateTimeOffset>,
+                                    w: Result<double, DateTimeOffset>,
+                                    x: Result<double, bool>,
+                                    y: CustomRecord,
+                                    z: int list list) =
+    printfn "%A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A "
+      a b c d e f g h i j k l m n o p q r s t u v w x y z
+
+  [<Property(Skip = skipReason)>]
+  let ``unresolved generics fail, skipped`` _ = ()
+  [<Fact>]
+  let ``unresolved generics fail`` () =
+    let e = Assert.Throws<Exception>(fun () -> PropertyHelper.report (getMethod (nameof ``unresolved generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
+    Assert.Equal("The parameter type 'a' at index 0 is generic. A type annotation is required for GenX.auto to work.", e.Message)
+
+  [<Property(Skip = skipReason)>]
+  let ``0 parameters fails, skipped`` () = ()
+  [<Fact>]
+  let ``0 parameters fails`` () =
+    let e = Assert.Throws<Exception>(fun () -> PropertyHelper.report (getMethod (nameof ``0 parameters fails, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
+    Assert.Equal("The test method must take at least one parameter.", e.Message)
 
 type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
 
