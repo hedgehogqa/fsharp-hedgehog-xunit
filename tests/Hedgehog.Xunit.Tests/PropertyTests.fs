@@ -57,7 +57,7 @@ module ``Property module tests`` =
   let ``Can generate an int and string`` (i: int, s: string) =
     printfn "Test input: %i, %s" i s
   
-  [<Property(Tests = 1000, Skip = skipReason)>]
+  [<Property(Tests = 1000<tests>, Skip = skipReason)>]
   let ``Can shrink an int and string, skipped`` (i: int, s: string) =
     if i >= 2 && s.Contains "b" then failwith "Some error."
   [<Fact>]
@@ -129,7 +129,7 @@ type NonAutoGenConfig =
 
 type Int2718 = static member __ = { GenX.defaults with Int = Gen.constant 2718 }
 
-[<Properties(typeof<Int13>, 200)>]
+[<Properties(typeof<Int13>, 200<tests>)>]
 module ``Module with <Properties> tests`` =
 
   [<Property>]
@@ -149,7 +149,7 @@ module ``Module with <Properties> tests`` =
     let _, tests = PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType
     Assert.Equal(200, tests)
 
-  [<Property(Tests = 300)>]
+  [<Property(300<tests>)>]
   let ``Module <Properties> tests (count) is overriden by Method <Property>, skipped`` (_: int) = ()
   [<Fact>]
   let ``Module <Properties> tests (count) is overriden by Method <Property>`` () =

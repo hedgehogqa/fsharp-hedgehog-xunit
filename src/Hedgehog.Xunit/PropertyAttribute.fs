@@ -7,15 +7,15 @@ open Hedgehog
 /// Generates arguments using GenX.auto (or autoWith if you provide an AutoGenConfig), then runs Property.check
 [<AttributeUsage(AttributeTargets.Method ||| AttributeTargets.Property, AllowMultiple = false)>]
 [<XunitTestCaseDiscoverer("Hedgehog.Xunit.XunitOverrides+PropertyTestCaseDiscoverer", "Hedgehog.Xunit")>]
-type PropertyAttribute(autoGenConfig: Type, tests:int, skip) =
+type PropertyAttribute(autoGenConfig: Type, tests:int<tests>, skip) =
   inherit Xunit.FactAttribute(Skip = skip)
 
-  new()                     = PropertyAttribute(null         , 100  , null)
-  new(autoGenConfig)        = PropertyAttribute(autoGenConfig, 100  , null)
-  new(autoGenConfig, tests) = PropertyAttribute(autoGenConfig, tests, null)
-  new(autoGenConfig, skip)  = PropertyAttribute(autoGenConfig, 100  , skip)
-  new(tests)                = PropertyAttribute(null         , tests, null)
-  new(skip)                 = PropertyAttribute(null         , 100  , skip)
+  new()                     = PropertyAttribute(null         , 100<tests>, null)
+  new(autoGenConfig)        = PropertyAttribute(autoGenConfig, 100<tests>, null)
+  new(autoGenConfig, tests) = PropertyAttribute(autoGenConfig, tests     , null)
+  new(autoGenConfig, skip)  = PropertyAttribute(autoGenConfig, 100<tests>, skip)
+  new(tests)                = PropertyAttribute(null         , tests     , null)
+  new(skip)                 = PropertyAttribute(null         , 100<tests>, skip)
 
   // https://github.com/dotnet/fsharp/issues/4154 sigh
   /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.
@@ -31,16 +31,16 @@ type PropertyAttribute(autoGenConfig: Type, tests:int, skip) =
   /// let myTest (i:int) = ...
   ///
   /// ```
-  member _.AutoGenConfig with set (_: Type) = ()
-  member _.Tests         with set (_: int ) = ()
+  member _.AutoGenConfig with set (_: Type      ) = ()
+  member _.Tests         with set (_: int<tests>) = ()
 
 
 ///Set a default AutoGenConfig for all [<Property>] attributed methods in this class/module
 [<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
-type PropertiesAttribute(autoGenConfig: Type, tests: int) =
+type PropertiesAttribute(autoGenConfig: Type, tests: int<tests>) =
   inherit PropertyAttribute(autoGenConfig, tests)
-  new(autoGenConfig:Type) = PropertiesAttribute(autoGenConfig, 100  )
-  new(tests        :int ) = PropertiesAttribute(null         , tests)
+  new(autoGenConfig:Type      ) = PropertiesAttribute(autoGenConfig, 100<tests>)
+  new(tests        :int<tests>) = PropertiesAttribute(null         , tests     )
 
 module internal PropertyHelper =
 
