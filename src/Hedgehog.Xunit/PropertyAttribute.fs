@@ -7,15 +7,18 @@ open Hedgehog
 /// Generates arguments using GenX.auto (or autoWith if you provide an AutoGenConfig), then runs Property.check
 [<AttributeUsage(AttributeTargets.Method ||| AttributeTargets.Property, AllowMultiple = false)>]
 [<XunitTestCaseDiscoverer("Hedgehog.Xunit.XunitOverrides+PropertyTestCaseDiscoverer", "Hedgehog.Xunit")>]
-type PropertyAttribute(autoGenConfig: Type, tests:int<tests>, skip) =
+type PropertyAttribute(autoGenConfig, tests, skip) =
   inherit Xunit.FactAttribute(Skip = skip)
 
-  new()                     = PropertyAttribute(null         , 100<tests>, null)
-  new(autoGenConfig)        = PropertyAttribute(autoGenConfig, 100<tests>, null)
-  new(autoGenConfig, tests) = PropertyAttribute(autoGenConfig, tests     , null)
-  new(autoGenConfig, skip)  = PropertyAttribute(autoGenConfig, 100<tests>, skip)
-  new(tests)                = PropertyAttribute(null         , tests     , null)
-  new(skip)                 = PropertyAttribute(null         , 100<tests>, skip)
+  let mutable _autoGenConfig: Type       option = autoGenConfig
+  let mutable _tests        : int<tests> option = tests
+
+  new()                     = PropertyAttribute(None              , None       , null)
+  new(autoGenConfig)        = PropertyAttribute(Some autoGenConfig, None       , null)
+  new(autoGenConfig, tests) = PropertyAttribute(Some autoGenConfig, Some tests , null)
+  new(autoGenConfig, skip)  = PropertyAttribute(Some autoGenConfig, None       , skip)
+  new(tests)                = PropertyAttribute(None              , Some tests , null)
+  new(skip)                 = PropertyAttribute(None              , None       , skip)
 
   // https://github.com/dotnet/fsharp/issues/4154 sigh
   /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.
@@ -31,8 +34,10 @@ type PropertyAttribute(autoGenConfig: Type, tests:int<tests>, skip) =
   /// let myTest (i:int) = ...
   ///
   /// ```
-  member _.AutoGenConfig with set (_: Type      ) = ()
-  member _.Tests         with set (_: int<tests>) = ()
+  member             _.AutoGenConfig with set v = _autoGenConfig <- Some v
+  member             _.Tests         with set v = _tests         <- Some v
+  member internal _.GetAutoGenConfig            = _autoGenConfig
+  member internal _.GetTests                    = _tests
 
 
 ///Set a default AutoGenConfig for all [<Property>] attributed methods in this class/module
@@ -61,36 +66,21 @@ module internal PropertyHelper =
     typeof<Marker>.DeclaringType.GetTypeInfo().DeclaredMethods
     |> Seq.find (fun m -> m.Name = nameof(genxAutoBoxWith))
 
-  let ctorArg<'A> (attribute:CustomAttributeData) =
-    attribute.ConstructorArguments
-    |> Seq.filter (fun x -> x.ArgumentType = typeof<'A>)
-    |> Seq.tryExactlyOne
-    |> Option.map (fun x -> x.Value :?> 'A)
-  let namedArg<'A> (attribute:CustomAttributeData) =
-    attribute.NamedArguments
-    |> Seq.filter(fun x -> x.TypedValue.ArgumentType = typeof<'A>)
-    |> Seq.tryExactlyOne
-    |> Option.map (fun x -> x.TypedValue.Value :?> 'A)
-
   let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
-    let classProperties =
-      testClass.CustomAttributes
-      |> Seq.tryFind (fun x -> x.AttributeType = typeof<PropertiesAttribute>)
+    let classAutoGenConfig, classTests =
+      testClass.GetCustomAttributes(typeof<PropertiesAttribute>)
+      |> Seq.tryExactlyOne
+      |> Option.map (fun x -> x :?> PropertiesAttribute)
+      |> function
+      | Some x -> x.GetAutoGenConfig, x.GetTests
+      | None   -> None              , None
     let configType, tests =
-      testMethod.CustomAttributes
-      |> Seq.filter (fun x -> x.AttributeType = typeof<PropertyAttribute>)
+      testMethod.GetCustomAttributes(typeof<PropertyAttribute>)
       |> Seq.exactlyOne
-      |> fun methodProperty ->
-        let methodCtorT  =             ctorArg<Type>  methodProperty
-        let methodNamedT =             namedArg<Type> methodProperty
-        let classCtorT   = Option.bind ctorArg<Type>  classProperties
-        let classNamedT  = Option.bind namedArg<Type> classProperties
-        let methodCtorI  =             ctorArg<int>   methodProperty
-        let methodNamedI =             namedArg<int>  methodProperty
-        let classCtorI   = Option.bind ctorArg<int>   classProperties
-        let classNamedI  = Option.bind namedArg<int>  classProperties
-        methodCtorT ++ methodNamedT ++ classCtorT ++ classNamedT,
-        methodCtorI ++ methodNamedI ++ classCtorI ++ classNamedI
+      :?> PropertyAttribute
+      |> fun methodAttribute ->
+        methodAttribute.GetAutoGenConfig ++ classAutoGenConfig,
+        methodAttribute.GetTests         ++ classTests        |> Option.defaultValue 100<tests>
     let config =
       match configType with
       | None -> GenX.defaults
@@ -110,7 +100,7 @@ type {t.Name} =
         Int = Gen.constant 13 }}
 "       |> fun x -> x.GetMethod.Invoke(null, [||])
         :?> AutoGenConfig
-    config, (tests |> Option.defaultValue 100 |> LanguagePrimitives.Int32WithMeasure)
+    config, tests
 
   let report (testMethod:MethodInfo) testClass testClassInstance =
     let config, tests = parseAttributes testMethod testClass

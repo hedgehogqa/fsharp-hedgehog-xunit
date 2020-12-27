@@ -190,7 +190,7 @@ module ``Module with <Properties> tests`` =
   let ``Module <Properties> tests (count) works`` () =
     let testMethod = getMethod (nameof ``Module <Properties> works``)
     let _, tests = PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType
-    Assert.Equal(200, tests)
+    Assert.Equal(200<tests>, tests)
 
   [<Property(300<tests>)>]
   let ``Module <Properties> tests (count) is overriden by Method <Property>, skipped`` (_: int) = ()
@@ -198,7 +198,7 @@ module ``Module with <Properties> tests`` =
   let ``Module <Properties> tests (count) is overriden by Method <Property>`` () =
     let testMethod = getMethod (nameof ``Module <Properties> tests (count) is overriden by Method <Property>, skipped``)
     let _, tests = PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType
-    Assert.Equal(300, tests)
+    Assert.Equal(300<tests>, tests)
 
 [<Properties(typeof<Int13>)>]
 type ``Class with <Properties> tests``(output: Xunit.Abstractions.ITestOutputHelper) =
@@ -210,3 +210,16 @@ type ``Class with <Properties> tests``(output: Xunit.Abstractions.ITestOutputHel
   [<Property(typeof<Int2718>)>]
   let ``Class <Properties> is overriden by Method level <Property>`` (i: int) =
     i = 2718
+
+type PropertyInt13Attribute() = inherit PropertyAttribute(typeof<Int13>)
+module ``Property inheritance tests`` =
+  [<PropertyInt13>]
+  let ``Property inheritance works`` (i: int) =
+    i = 13
+
+type PropertiesInt13Attribute() = inherit PropertiesAttribute(typeof<Int13>)
+[<PropertiesInt13>]
+module ``Properties inheritance tests`` =
+  [<Property>]
+  let ``Properties inheritance works`` (i: int) =
+    i = 13
