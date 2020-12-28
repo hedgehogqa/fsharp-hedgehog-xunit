@@ -106,6 +106,7 @@ type {t.Name} =
         :?> AutoGenConfig
     config, tests
 
+  open System.Threading.Tasks
   let report (testMethod:MethodInfo) testClass testClassInstance =
     let config, tests = parseAttributes testMethod testClass
     let gens =
@@ -125,8 +126,12 @@ type {t.Name} =
         | _ -> Microsoft.FSharp.Reflection.FSharpValue.GetTupleFields t
       testMethod.Invoke(testClassInstance, args)
       |> function
-      | :? bool as b -> Property.ofBool b
-      | _            -> Property.success ()
+      | :? bool        as b -> Property.ofBool b
+      | :? Task        as t -> t.GetAwaiter().GetResult()
+                               Property.success ()
+      | :? Async<unit> as a -> Async.RunSynchronously a
+                               Property.success ()
+      | _                   -> Property.success ()
     Property.forAll gens invoke |> Property.report' tests
 
 

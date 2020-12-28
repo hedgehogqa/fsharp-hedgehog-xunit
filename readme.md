@@ -69,6 +69,21 @@ Hedgehog.FailedException: *** Failed! Falsifiable (after 2 tests):
 (false)
 ```
 
+If the test returns an `Async<unit>`, `Task`, or `Task<unit>`, `Async.RunSynchronously` or `.GetAwaiter().GetResult()` will be called, _which blocks the thread._ This may have significant performance implications as tests run 100 times by default.
+
+```f#
+[<Property>]
+let ``AsyncBuilder with exception shrinks`` (i: int) = async {
+  do! Async.Sleep 100
+  if i > 10 then
+    raise <| Exception()
+  }
+
+=== Output ===
+Hedgehog.FailedException: *** Failed! Falsifiable (after 12 tests):
+(11)
+```
+
 There are 3 options: `AutoGenConfig`, `Tests` (count), and `Skip` (reason).
 
 #### `AutoGenConfig`

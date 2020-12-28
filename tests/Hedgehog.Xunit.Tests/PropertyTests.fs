@@ -227,3 +227,47 @@ module ``Properties inheritance tests`` =
   [<Property>]
   let ``Properties inheritance works`` (i: int) =
     i = 13
+
+module ``Asynchronous tests`` =
+
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+  let assertShrunk methodName expected =
+    let report = PropertyHelper.report (getMethod methodName) typeof<Marker>.DeclaringType null
+    match report.Status with
+    | Status.Failed(_, journal) ->
+      Assert.Equal(expected, Journal.toList journal |> Seq.head)
+    | _ -> failwith "impossible"
+
+  open System.Threading.Tasks
+  [<Property(skipReason)>]
+  let ``Returning Task with exception fails, skipped`` (i: int) : Task =
+    if i > 10 then
+      Exception() |> Task.FromException
+    else Task.CompletedTask
+  [<Fact>]
+  let ``Returning Task with exception fails`` () =
+    assertShrunk (nameof ``Returning Task with exception fails, skipped``) "(11)"
+
+  open FSharp.Control.Tasks
+  [<Property(skipReason)>]
+  let ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped`` (i: int) : Task<unit> =
+    task {
+      do! Task.Delay 100
+      if i > 10 then
+        raise <| Exception()
+    }
+  [<Fact>]
+  let ``TaskBuilder (returning Task<unit>) with exception shrinks`` () =
+    assertShrunk (nameof ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped``) "(11)"
+    
+  [<Property(skipReason)>]
+  let ``AsyncBuilder with exception shrinks, skipped`` (i: int) =
+    async {
+      do! Async.Sleep 100
+      if i > 10 then
+        raise <| Exception()
+    }
+  [<Fact>]
+  let ``AsyncBuilder with exception shrinks`` () =
+    assertShrunk (nameof ``AsyncBuilder with exception shrinks, skipped``) "(11)"
