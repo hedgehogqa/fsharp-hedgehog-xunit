@@ -13,12 +13,13 @@ type PropertyAttribute(autoGenConfig, tests, skip) =
   let mutable _autoGenConfig: Type       option = autoGenConfig
   let mutable _tests        : int<tests> option = tests
 
-  new()                     = PropertyAttribute(None              , None       , null)
-  new(autoGenConfig)        = PropertyAttribute(Some autoGenConfig, None       , null)
-  new(autoGenConfig, tests) = PropertyAttribute(Some autoGenConfig, Some tests , null)
-  new(autoGenConfig, skip)  = PropertyAttribute(Some autoGenConfig, None       , skip)
-  new(tests)                = PropertyAttribute(None              , Some tests , null)
-  new(skip)                 = PropertyAttribute(None              , None       , skip)
+  new()                     = PropertyAttribute(None              , None      , null)
+  new(autoGenConfig)        = PropertyAttribute(Some autoGenConfig, None      , null)
+  new(autoGenConfig, tests) = PropertyAttribute(Some autoGenConfig, Some tests, null)
+  new(tests, autoGenConfig) = PropertyAttribute(Some autoGenConfig, Some tests, null)
+  new(autoGenConfig, skip)  = PropertyAttribute(Some autoGenConfig, None      , skip)
+  new(tests)                = PropertyAttribute(None              , Some tests, null)
+  new(skip)                 = PropertyAttribute(None              , None      , skip)
 
   // https://github.com/dotnet/fsharp/issues/4154 sigh
   /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.
@@ -40,12 +41,15 @@ type PropertyAttribute(autoGenConfig, tests, skip) =
   member internal _.GetTests                    = _tests
 
 
-///Set a default AutoGenConfig for all [<Property>] attributed methods in this class/module
+///Set a default AutoGenConfig or <tests> for all [<Property>] attributed methods in this class/module
 [<AttributeUsage(AttributeTargets.Class, AllowMultiple = false)>]
-type PropertiesAttribute(autoGenConfig: Type, tests: int<tests>) =
-  inherit PropertyAttribute(autoGenConfig, tests)
-  new(autoGenConfig:Type      ) = PropertiesAttribute(autoGenConfig, 100<tests>)
-  new(tests        :int<tests>) = PropertiesAttribute(null         , tests     )
+type PropertiesAttribute(autoGenConfig, tests) =
+  inherit PropertyAttribute(autoGenConfig, tests, null)
+  new()                          = PropertiesAttribute(None              , None)
+  new(autoGenConfig)             = PropertiesAttribute(Some autoGenConfig, None      )
+  new(tests)                     = PropertiesAttribute(None              , Some tests)
+  new(autoGenConfig:Type, tests) = PropertiesAttribute(Some autoGenConfig, Some tests)
+  new(tests, autoGenConfig:Type) = PropertiesAttribute(Some autoGenConfig, Some tests)
 
 module internal PropertyHelper =
 
