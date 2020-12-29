@@ -4,10 +4,11 @@ open System
 open Hedgehog
 
 let toGenTuple = function
-  | [||] -> failwith "The test method must take at least one parameter."
+  | [||] -> gen {
+    return () |> Tuple.Create |> box }
   | [|a|] -> gen {
     let! a = a
-    return (Tuple.Create a) |> box }
+    return a |> Tuple.Create |> box }
   | [|a;b|] -> gen {
     let! a = a
     let! b = b

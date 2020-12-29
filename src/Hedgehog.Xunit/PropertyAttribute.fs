@@ -107,15 +107,19 @@ type {t.Name} =
     let gens =
       testMethod.GetParameters()
       |> Array.mapi (fun i p ->
-        if p.ParameterType.IsGenericParameter then
-          failwith $"The parameter type '{p.ParameterType.Name}' at index {i} is generic. A type annotation is required for GenX.auto to work."
+        if p.ParameterType.ContainsGenericParameters then
+          invalidArg p.Name $"The parameter type '{p.ParameterType.Name}' at index {i} is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete."
         genxAutoBoxWithMethodInfo
           .MakeGenericMethod(p.ParameterType)
           .Invoke(null, [|config|])
         :?> Gen<obj>)
       |> ArrayGen.toGenTuple
     let invoke t =
-      testMethod.Invoke(testClassInstance, Microsoft.FSharp.Reflection.FSharpValue.GetTupleFields t)
+      let args =
+        match testMethod.GetParameters() with
+        | [||] -> [||]
+        | _ -> Microsoft.FSharp.Reflection.FSharpValue.GetTupleFields t
+      testMethod.Invoke(testClassInstance, args)
       |> function
       | :? bool as b -> Property.ofBool b
       | _            -> Property.success ()

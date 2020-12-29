@@ -97,15 +97,19 @@ module ``Property module tests`` =
   let ``unresolved generics fail, skipped`` _ = ()
   [<Fact>]
   let ``unresolved generics fail`` () =
-    let e = Assert.Throws<Exception>(fun () -> PropertyHelper.report (getMethod (nameof ``unresolved generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
-    Assert.Equal("The parameter type 'a' at index 0 is generic. A type annotation is required for GenX.auto to work.", e.Message)
+    let e = Assert.Throws<ArgumentException>(fun () -> PropertyHelper.report (getMethod (nameof ``unresolved generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
+    Assert.Equal("The parameter type 'a' at index 0 is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete. (Parameter '_arg1')", e.Message)
 
   [<Property(Skip = skipReason)>]
-  let ``0 parameters fails, skipped`` () = ()
+  let ``unresolved nested generics fail, skipped`` (_: _ list) = ()
   [<Fact>]
-  let ``0 parameters fails`` () =
-    let e = Assert.Throws<Exception>(fun () -> PropertyHelper.report (getMethod (nameof ``0 parameters fails, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
-    Assert.Equal("The test method must take at least one parameter.", e.Message)
+  let ``unresolved nested generics fail`` () =
+    let e = Assert.Throws<ArgumentException>(fun () -> PropertyHelper.report (getMethod (nameof ``unresolved nested generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
+    Assert.Equal("The parameter type 'FSharpList`1' at index 0 is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete. (Parameter '_arg1')", e.Message)
+
+  [<Property>]
+  let ``0 parameters passes`` () =
+    ()
 
 type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
 
