@@ -10,6 +10,7 @@ module Common =
 
 open Common
 
+
 module ``Property module tests`` =
 
   type private Marker = class end
@@ -111,6 +112,7 @@ module ``Property module tests`` =
   let ``0 parameters passes`` () =
     ()
 
+
 type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
 
   [<Property>]
@@ -137,7 +139,6 @@ module ``Property module with AutoGenConfig tests`` =
     let ``Uses custom Int gen with named arg`` i = i = 13
 
   module FailingTests =
-
     type private Marker = class end
 
     type NonstaticProperty = member _.__ = GenX.defaults
@@ -204,6 +205,7 @@ module ``Module with <Properties> tests`` =
     let _, tests = PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType
     Assert.Equal(300<tests>, tests)
 
+
 [<Properties(typeof<Int13>)>]
 type ``Class with <Properties> tests``(output: Xunit.Abstractions.ITestOutputHelper) =
 
@@ -215,11 +217,13 @@ type ``Class with <Properties> tests``(output: Xunit.Abstractions.ITestOutputHel
   let ``Class <Properties> is overriden by Method level <Property>`` (i: int) =
     i = 2718
 
+
 type PropertyInt13Attribute() = inherit PropertyAttribute(typeof<Int13>)
 module ``Property inheritance tests`` =
   [<PropertyInt13>]
   let ``Property inheritance works`` (i: int) =
     i = 13
+
 
 type PropertiesInt13Attribute() = inherit PropertiesAttribute(typeof<Int13>)
 [<PropertiesInt13>]
@@ -227,6 +231,7 @@ module ``Properties inheritance tests`` =
   [<Property>]
   let ``Properties inheritance works`` (i: int) =
     i = 13
+
 
 module ``Asynchronous tests`` =
 
@@ -271,3 +276,27 @@ module ``Asynchronous tests`` =
   [<Fact>]
   let ``AsyncBuilder with exception shrinks`` () =
     assertShrunk (nameof ``AsyncBuilder with exception shrinks, skipped``) "(11)"
+
+
+module ``IDisposable test module`` =
+  let mutable runs = 0
+  let mutable disposes = 0
+
+  type DisposableImplementation() =
+    interface IDisposable with
+      member _.Dispose() =
+        disposes <- disposes + 1
+  let getMethod = typeof<DisposableImplementation>.DeclaringType.GetMethod
+
+  [<Property(skipReason)>]
+  let ``IDisposable arg get disposed even if exception thrown, skipped`` (_: DisposableImplementation) (i: int) =
+    runs <- runs + 1
+    if i > 10 then raise <| Exception()
+  [<Fact>]
+  let ``IDisposable arg get disposed even if exception thrown`` () =
+    let report = PropertyHelper.report (getMethod (nameof ``IDisposable arg get disposed even if exception thrown, skipped``)) typeof<DisposableImplementation>.DeclaringType null
+    match report.Status with
+    | Status.Failed _ ->
+      Assert.NotEqual(0, runs)
+      Assert.Equal(runs, disposes)
+    | _ -> failwith "impossible"

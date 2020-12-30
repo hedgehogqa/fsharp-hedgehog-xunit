@@ -106,11 +106,17 @@ type {t.Name} =
         :?> AutoGenConfig
     config, tests
 
+  let dispose (o:obj) =
+    match o with
+    | :? IDisposable as d -> d.Dispose()
+    | _ -> ()
+
   open System.Threading.Tasks
   let report (testMethod:MethodInfo) testClass testClassInstance =
     let config, tests = parseAttributes testMethod testClass
+    let testMethodParameters = testMethod.GetParameters()
     let gens =
-      testMethod.GetParameters()
+      testMethodParameters
       |> Array.mapi (fun i p ->
         if p.ParameterType.ContainsGenericParameters then
           invalidArg p.Name $"The parameter type '{p.ParameterType.Name}' at index {i} is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete."
@@ -121,17 +127,21 @@ type {t.Name} =
       |> ArrayGen.toGenTuple
     let invoke t =
       let args =
-        match testMethod.GetParameters() with
+        match testMethodParameters with
         | [||] -> [||]
         | _ -> Microsoft.FSharp.Reflection.FSharpValue.GetTupleFields t
-      testMethod.Invoke(testClassInstance, args)
-      |> function
-      | :? bool        as b -> Property.ofBool b
-      | :? Task        as t -> t.GetAwaiter().GetResult()
-                               Property.success ()
-      | :? Async<unit> as a -> Async.RunSynchronously a
-                               Property.success ()
-      | _                   -> Property.success ()
+      try
+        testMethod.Invoke(testClassInstance, args)
+        |> function
+        | :? bool        as b -> Property.ofBool b
+        | :? Task        as t -> t.GetAwaiter().GetResult()
+                                 Property.success ()
+        | :? Async<unit> as a -> Async.RunSynchronously a
+                                 Property.success ()
+        | _                   -> Property.success ()
+      finally
+        Array.iter dispose args
+        
     Property.forAll gens invoke |> Property.report' tests
 
 
