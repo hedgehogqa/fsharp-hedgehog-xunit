@@ -114,9 +114,8 @@ type {t.Name} =
   open System.Threading.Tasks
   let report (testMethod:MethodInfo) testClass testClassInstance =
     let config, tests = parseAttributes testMethod testClass
-    let testMethodParameters = testMethod.GetParameters()
     let gens =
-      testMethodParameters
+      testMethod.GetParameters()
       |> Array.mapi (fun i p ->
         if p.ParameterType.ContainsGenericParameters then
           invalidArg p.Name $"The parameter type '{p.ParameterType.Name}' at index {i} is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete."
@@ -124,14 +123,11 @@ type {t.Name} =
           .MakeGenericMethod(p.ParameterType)
           .Invoke(null, [|config|])
         :?> Gen<obj>)
-      |> ArrayGen.toGenTuple
-    let invoke t =
-      let args =
-        match testMethodParameters with
-        | [||] -> [||]
-        | _ -> Microsoft.FSharp.Reflection.FSharpValue.GetTupleFields t
+      |> List.ofArray
+      |> ListGen.sequence
+    let invoke args =
       try
-        testMethod.Invoke(testClassInstance, args)
+        testMethod.Invoke(testClassInstance, args |> Array.ofList)
         |> function
         | :? bool        as b -> Property.ofBool b
         | :? Task        as t -> t.GetAwaiter().GetResult()
@@ -140,7 +136,7 @@ type {t.Name} =
                                  Property.success ()
         | _                   -> Property.success ()
       finally
-        Array.iter dispose args
+        List.iter dispose args
         
     Property.forAll gens invoke |> Property.report' tests
 

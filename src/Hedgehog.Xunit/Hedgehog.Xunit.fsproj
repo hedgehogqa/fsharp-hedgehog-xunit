@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
@@ -33,7 +33,7 @@ Docs at https://github.com/dharmaturtle/fsharp-hedgehog-xunit
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="ArrayGen.fs" />
+    <Compile Include="ListGen.fs" />
     <Compile Include="PropertyAttribute.fs" />
   </ItemGroup>
 

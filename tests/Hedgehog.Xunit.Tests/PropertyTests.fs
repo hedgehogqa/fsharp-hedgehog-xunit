@@ -26,7 +26,7 @@ module ``Property module tests`` =
   let ``fails for false, skipped`` (_: int) = false
   [<Fact>]
   let ``fails for false`` () =
-    assertShrunk (nameof ``fails for false, skipped``) "(0)"
+    assertShrunk (nameof ``fails for false, skipped``) "[0]"
 
   [<Property>]
   let ``Can generate an int`` (i: int) =
@@ -37,7 +37,7 @@ module ``Property module tests`` =
     if i >= 50 then failwith "Some error."
   [<Fact>]
   let ``Can shrink an int`` () =
-    assertShrunk (nameof ``Can shrink an int, skipped``) "(50)"
+    assertShrunk (nameof ``Can shrink an int, skipped``) "[50]"
 
   [<Property>]
   let ``Can generate two ints`` (i1: int, i2: int) =
@@ -49,7 +49,7 @@ module ``Property module tests`` =
        i2 >= 20 then failwith "Some error."
   [<Fact>]
   let ``Can shrink both ints`` () =
-    assertShrunk (nameof ``Can shrink both ints, skipped``) "(10, 20)"
+    assertShrunk (nameof ``Can shrink both ints, skipped``) "[10; 20]"
   
   [<Property>]
   let ``Can generate an int and string`` (i: int, s: string) =
@@ -60,7 +60,7 @@ module ``Property module tests`` =
     if i >= 2 && s.Contains "b" then failwith "Some error."
   [<Fact>]
   let ``Can shrink an int and string`` () =
-    assertShrunk (nameof ``Can shrink an int and string, skipped``) "(2, \"b\")"
+    assertShrunk (nameof ``Can shrink an int and string, skipped``) "[2; \"b\"]"
 
   type CustomRecord = { Herp: int; Derp: string }
   [<Property>]
@@ -252,7 +252,7 @@ module ``Asynchronous tests`` =
     else Task.CompletedTask
   [<Fact>]
   let ``Returning Task with exception fails`` () =
-    assertShrunk (nameof ``Returning Task with exception fails, skipped``) "(11)"
+    assertShrunk (nameof ``Returning Task with exception fails, skipped``) "[11]"
 
   open FSharp.Control.Tasks
   [<Property(skipReason)>]
@@ -264,7 +264,7 @@ module ``Asynchronous tests`` =
     }
   [<Fact>]
   let ``TaskBuilder (returning Task<unit>) with exception shrinks`` () =
-    assertShrunk (nameof ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped``) "(11)"
+    assertShrunk (nameof ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped``) "[11]"
     
   [<Property(skipReason)>]
   let ``AsyncBuilder with exception shrinks, skipped`` (i: int) =
@@ -275,7 +275,7 @@ module ``Asynchronous tests`` =
     }
   [<Fact>]
   let ``AsyncBuilder with exception shrinks`` () =
-    assertShrunk (nameof ``AsyncBuilder with exception shrinks, skipped``) "(11)"
+    assertShrunk (nameof ``AsyncBuilder with exception shrinks, skipped``) "[11]"
 
 
 module ``IDisposable test module`` =
