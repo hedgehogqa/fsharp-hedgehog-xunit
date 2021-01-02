@@ -136,7 +136,7 @@ type {t.Name} =
         | :? bool        as b -> Property.ofBool b
         | :? Task        as t -> t.GetAwaiter().GetResult()
                                  Property.success ()
-        | :? Async<unit> as a -> Async.RunSynchronously a
+        | :? Async<unit> as a -> Async.RunSynchronously(a, cancellationToken = System.Threading.CancellationToken.None)
                                  Property.success ()
         | _                   -> Property.success ()
       finally
