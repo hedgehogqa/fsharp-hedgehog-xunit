@@ -32,7 +32,7 @@ let ``Reversing a list twice yields the original list`` () =
   } |> Property.check
 ```
 
-This library, `Hedgehog.Xunit`, allows us to simplify the above test to:
+This library, `Hedgehog.Xunit`, allows you to simplify the above test to:
 
 ```f#
 open Hedgehog.Xunit
