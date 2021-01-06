@@ -14,7 +14,7 @@
     <PackageProjectUrl>https://github.com/dharmaturtle/fsharp-hedgehog-xunit</PackageProjectUrl>
     <PackageTags>f# fsharp testing xunit</PackageTags>
     <PackageIcon>hedgehog-logo.png</PackageIcon>
-    <Version>0.0.1</Version>
+    <Version>0.0.1-test.0</Version>
     <PackageId>Hedgehog.Xunit</PackageId>
     <PackageDescription>
 Hedgehog with convenience attributes for xUnit.
