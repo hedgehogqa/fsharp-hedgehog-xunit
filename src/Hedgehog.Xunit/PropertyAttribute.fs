@@ -179,10 +179,8 @@ module internal XunitOverrides =
   
   type PropertyTestCaseDiscoverer(messageSink) =
   
-    member _.MessageSink = messageSink
-  
     interface IXunitTestCaseDiscoverer with
-      override this.Discover(discoveryOptions, testMethod, _) =
-        new PropertyTestCase(this.MessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod)
+      override _.Discover(discoveryOptions, testMethod, _) =
+        new PropertyTestCase(messageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod)
         :> IXunitTestCase
         |> Seq.singleton
