@@ -1,6 +1,6 @@
 # fsharp-hedgehog-xunit
 
-[![][nuget-shield]][nuget] [![][workflow-shield]][workflow]
+[![][nuget-shield]][nuget] [![][workflow-shield]][workflow] [![Coverage Status](https://coveralls.io/repos/github/dharmaturtle/fsharp-hedgehog-xunit/badge.svg?branch=main)](https://coveralls.io/github/dharmaturtle/fsharp-hedgehog-xunit?branch=main)
 
 [Hedgehog][hedgehog] with convenience attributes for [xUnit.net][xunit].
 
