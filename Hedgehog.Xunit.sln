@@ -5,7 +5,12 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hedgehog.Xunit", "src\Hedgehog.Xunit\Hedgehog.Xunit.fsproj", "{216BE9A2-7DCC-445F-8438-B138D8CB1FE8}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hedgehog.Xunit.Tests", "tests\Hedgehog.Xunit.Tests\Hedgehog.Xunit.Tests.fsproj", "{63A8D184-519E-4061-8A74-F1EACAF3B0D5}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hedgehog.Xunit.Tests", "tests\Hedgehog.Xunit.Tests\Hedgehog.Xunit.Tests.fsproj", "{63A8D184-519E-4061-8A74-F1EACAF3B0D5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E5FCE96F-A6AE-434F-B901-19359F39B504}"
+	ProjectSection(SolutionItems) = preProject
+		readme.md = readme.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
