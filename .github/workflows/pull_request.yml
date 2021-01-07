@@ -1,0 +1,25 @@
+name: Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.101
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Build
+      run: dotnet build -c Release "src/Hedgehog.Xunit"
+    - name: Test
+      run: dotnet test -c Release "tests/Hedgehog.Xunit.Tests"

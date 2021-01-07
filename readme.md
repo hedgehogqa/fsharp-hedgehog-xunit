@@ -191,5 +191,5 @@ module ___ =
 
 [nuget]: https://www.nuget.org/packages/Hedgehog.Xunit/
 [nuget-shield]: https://img.shields.io/nuget/v/Hedgehog.Xunit.svg
-[workflow]: https://github.com/dharmaturtle/fsharp-hedgehog-xunit/actions?query=workflow%3A%22.NET+Core%22
-[workflow-shield]: https://github.com/dharmaturtle/fsharp-hedgehog-xunit/workflows/.NET%20Core/badge.svg
+[workflow]: https://github.com/dharmaturtle/fsharp-hedgehog-xunit/actions?query=workflow%3AMain
+[workflow-shield]: https://github.com/dharmaturtle/fsharp-hedgehog-xunit/workflows/Main/badge.svg
