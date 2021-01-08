@@ -35,8 +35,8 @@ type PropertyAttribute(autoGenConfig, tests, skip) =
   /// let myTest (i:int) = ...
   ///
   /// ```
-  member             _.AutoGenConfig with set v = _autoGenConfig <- Some v
-  member             _.Tests         with set v = _tests         <- Some v
+  member          _.AutoGenConfig    with set v = _autoGenConfig <- Some v
+  member          _.Tests            with set v = _tests         <- Some v
   member internal _.GetAutoGenConfig            = _autoGenConfig
   member internal _.GetTests                    = _tests
 
@@ -171,6 +171,7 @@ module internal XunitOverrides =
   
     [<EditorBrowsable(EditorBrowsableState.Never)>]
     [<Obsolete("Called by the de-serializer; should only be called by deriving classes for de-serialization purposes")>]
+    [<System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage>]
     new() = new PropertyTestCase(null, TestMethodDisplay.ClassAndMethod, TestMethodDisplayOptions.All, null)
   
     override this.RunAsync(_, messageBus, constructorArguments, aggregator, cancellationTokenSource) =
