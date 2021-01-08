@@ -300,3 +300,15 @@ module ``IDisposable test module`` =
       Assert.NotEqual(0, runs)
       Assert.Equal(runs, disposes)
     | _ -> failwith "impossible"
+
+module ``PropertyTestCaseDiscoverer works`` =
+  let mutable runs = 0
+  [<Property>]
+  let ``increment runs`` () =
+    runs <- runs + 1
+
+  // This assumes that ``increment runs`` runs before this test runs. The tests *seem* to run in alphabetical order.
+  // https://github.com/asherber/Xunit.Priority doesn't seem to work; perhaps modules are treated differently. Ref: https://stackoverflow.com/questions/9210281/
+  [<Fact>]
+  let ``PropertyAttribute is discovered and run`` () =
+    Assert.True(runs > 0)
