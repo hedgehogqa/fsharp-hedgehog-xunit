@@ -10,6 +10,7 @@ module Common =
 
 open Common
 
+type Int13 = static member __ = { GenX.defaults with Int = Gen.constant 13 }
 
 module ``Property module tests`` =
 
@@ -61,6 +62,24 @@ module ``Property module tests`` =
   [<Fact>]
   let ``Can shrink an int and string`` () =
     assertShrunk (nameof ``Can shrink an int and string, skipped``) "[2; \"b\"]"
+
+  [<Property(1<tests>, typeof<Int13>)>]
+  let ``runs once with 13`` () = ()
+  [<Fact>]
+  let ``Tests 'runs once with 13'`` () =
+    let config, tests = PropertyHelper.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(1<tests>, tests)
+    let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
+    Assert.Equal(13, generated)
+
+  [<Property(typeof<Int13>, 1<tests>)>]
+  let ``runs with 13 once`` () = ()
+  [<Fact>]
+  let ``Tests 'runs with 13 once'`` () =
+    let config, tests = PropertyHelper.parseAttributes (nameof ``runs with 13 once`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(1<tests>, tests)
+    let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
+    Assert.Equal(13, generated)
 
   type CustomRecord = { Herp: int; Derp: string }
   [<Property>]
@@ -126,8 +145,6 @@ type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
   [<Property>]
   let ``Can generate an int and string`` (i: int, s: string) =
     sprintf "Test input: %i, %s" i s |> output.WriteLine
-    
-type Int13 = static member __ = { GenX.defaults with Int = Gen.constant 13 }
 
 module ``Property module with AutoGenConfig tests`` =
 
