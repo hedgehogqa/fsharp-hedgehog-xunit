@@ -250,6 +250,46 @@ module ``Properties inheritance tests`` =
     i = 13
 
 
+[<Properties(Tests = 1<tests>, AutoGenConfig = typeof<Int13>)>]
+module ``Properties named arg tests`` =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+  [<Property>]
+  let ``runs once with 13`` () = ()
+  [<Fact>]
+  let ``Tests 'runs once with 13'`` () =
+    let config, tests = PropertyHelper.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(1<tests>, tests)
+    let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
+    Assert.Equal(13, generated)
+
+
+[<Properties(1<tests>, typeof<Int13>)>]
+module ``Properties (tests, config) tests`` =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+  [<Property>]
+  let ``runs once with 13`` () = ()
+  [<Fact>]
+  let ``Tests 'runs once with 13'`` () =
+    let config, tests = PropertyHelper.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(1<tests>, tests)
+    let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
+    Assert.Equal(13, generated)
+
+
+[<Properties(1<tests>)>]
+module ``Properties (tests count) tests`` =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+  [<Property>]
+  let ``runs once`` () = ()
+  [<Fact>]
+  let ``Tests 'runs once'`` () =
+    let _, tests = PropertyHelper.parseAttributes (nameof ``runs once`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(1<tests>, tests)
+
+
 module ``Asynchronous tests`` =
 
   type private Marker = class end
@@ -317,6 +357,7 @@ module ``IDisposable test module`` =
       Assert.NotEqual(0, runs)
       Assert.Equal(runs, disposes)
     | _ -> failwith "impossible"
+
 
 module ``PropertyTestCaseDiscoverer works`` =
   let mutable runs = 0
