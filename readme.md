@@ -103,8 +103,7 @@ Create a class with a single static property that returns an instance of `AutoGe
 ```f#
 type AutoGenConfigContainer =
   static member __ =
-    { GenX.defaults with
-        Int = Gen.constant 13 }
+    GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 
 [<Property(typeof<AutoGenConfigContainer>)>]
 let ``This test passes`` (i: int) =
@@ -140,8 +139,8 @@ let ``This test is skipped`` () =
 This optional attribute may decorate modules or classes. It sets default arguments for `AutoGenConfig` and `Tests`. These will be overridden by any arguments provided by the `Property` attribute.
 
 ```f#
-type Int13   = static member __ = { GenX.defaults with Int = Gen.constant 13   }
-type Int2718 = static member __ = { GenX.defaults with Int = Gen.constant 2718 }
+type Int13   = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
+type Int2718 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 2718)
 
 [<Properties(typeof<Int13>, 1<tests>)>]
 module ``Module with <Properties> tests`` =
@@ -170,7 +169,7 @@ module __ =
 Types which inherit from `PropertyAttribute` xor `PropertiesAttribute` will retain their parent's arguments.
 
 ```f#
-type Int13 = static member __ = { GenX.defaults with Int = Gen.constant 13 }
+type Int13 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 
 type PropertyInt13Attribute() = inherit PropertyAttribute(typeof<Int13>)
 module __ =

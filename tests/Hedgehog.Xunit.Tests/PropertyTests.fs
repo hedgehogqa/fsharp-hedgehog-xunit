@@ -10,7 +10,7 @@ module Common =
 
 open Common
 
-type Int13 = static member __ = { GenX.defaults with Int = Gen.constant 13 }
+type Int13 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 
 module ``Property module tests`` =
 
@@ -19,8 +19,8 @@ module ``Property module tests`` =
   let assertShrunk methodName expected =
     let report = PropertyHelper.report (getMethod methodName) typeof<Marker>.DeclaringType null
     match report.Status with
-    | Status.Failed(_, journal) ->
-      Assert.Equal(expected, Journal.toList journal |> Seq.head)
+    | Status.Failed r ->
+      Assert.Equal(expected, Journal.toList r.Journal |> Seq.head)
     | _ -> failwith "impossible"
     
   [<Property(Skip = skipReason)>]
@@ -171,8 +171,7 @@ An example type definition:
 
 type NonstaticProperty =
   static member __ =
-    { GenX.defaults with
-        Int = Gen.constant 13 }
+    GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 ", e.Message)
 
     type NonAutoGenConfig = static member __ = ()
@@ -188,11 +187,10 @@ An example type definition:
 
 type NonAutoGenConfig =
   static member __ =
-    { GenX.defaults with
-        Int = Gen.constant 13 }
+    GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 ", e.Message)
 
-type Int2718 = static member __ = { GenX.defaults with Int = Gen.constant 2718 }
+type Int2718 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 2718)
 
 [<Properties(typeof<Int13>, 200<tests>)>]
 module ``Module with <Properties> tests`` =
@@ -297,8 +295,8 @@ module ``Asynchronous tests`` =
   let assertShrunk methodName expected =
     let report = PropertyHelper.report (getMethod methodName) typeof<Marker>.DeclaringType null
     match report.Status with
-    | Status.Failed(_, journal) ->
-      Assert.Equal(expected, Journal.toList journal |> Seq.head)
+    | Status.Failed r ->
+      Assert.Equal(expected, Journal.toList r.Journal |> Seq.head)
     | _ -> failwith "impossible"
 
   open System.Threading.Tasks

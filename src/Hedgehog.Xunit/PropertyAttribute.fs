@@ -28,7 +28,7 @@ type PropertyAttribute(autoGenConfig, tests, skip) =
   ///
   /// ```
   ///
-  /// type Int13 = static member AnyName = { GenX.defaults with Int = Gen.constant 13 }
+  /// type Int13 = static member AnyName = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
   ///
   /// [<Property(typeof<Int13>)>]
   ///
@@ -100,8 +100,7 @@ An example type definition:
 
 type {t.Name} =
   static member __ =
-    {{ GenX.defaults with
-        Int = Gen.constant 13 }}
+    GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 "       |> fun x -> x.GetMethod.Invoke(null, [||])
         :?> AutoGenConfig
     config, tests
