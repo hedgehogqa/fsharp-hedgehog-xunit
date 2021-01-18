@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
@@ -14,7 +14,7 @@
     <PackageProjectUrl>https://github.com/dharmaturtle/fsharp-hedgehog-xunit</PackageProjectUrl>
     <PackageTags>f# fsharp testing xunit</PackageTags>
     <PackageIcon>hedgehog-logo.png</PackageIcon>
-    <Version>0.1.0</Version>
+    <Version>0.1.3</Version>
     <PackageId>Hedgehog.Xunit</PackageId>
     <PackageDescription>
 Hedgehog with convenience attributes for xUnit.
