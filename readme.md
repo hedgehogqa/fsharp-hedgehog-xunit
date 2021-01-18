@@ -77,11 +77,11 @@ Hedgehog.FailedException: *** Failed! Falsifiable (after 2 tests):
 (false)
 ```
 
-If the test returns `Async<unit>`, `Task`, or `Task<unit>`, then `Async.RunSynchronously` or `.GetAwaiter().GetResult()` is called, _which blocks the thread._ This may have significant performance implications as tests run 100 times by default.
+If the test returns `Async<_>` or `Task<_>`, then `Async.RunSynchronously` is called, _which blocks the thread._ This may have significant performance implications as tests run 100 times by default.
 
 ```f#
 [<Property>]
-let ``AsyncBuilder with exception shrinks`` (i: int) = async {
+let ``Async with exception shrinks`` (i: int) = async {
   do! Async.Sleep 100
   if i > 10 then
     failwith "whoops!"
@@ -91,6 +91,22 @@ let ``AsyncBuilder with exception shrinks`` (i: int) = async {
 Hedgehog.FailedException: *** Failed! Falsifiable (after 12 tests):
 (11)
 ```
+A test returning a `Result` in an `Error` state will be treated as a failure.
+
+```f#
+[<Property>]
+let ``Result with Error shrinks`` (i: int) =
+  if i > 10 then
+    Error ()
+  else
+    Ok ()
+
+=== Output ===
+Hedgehog.FailedException: *** Failed! Falsifiable (after 13 tests and 2 shrinks):
+[11]
+```
+
+Tests returning `Async<Result<_,_>>` or `Task<Result<_,_>>` are run synchronously and are expected to be in the `Ok` state.
 
 The `Property` attribute's constructor may take 3 arguments: `AutoGenConfig`, `Tests` (count), and `Skip` (reason).
 

@@ -29,6 +29,16 @@ module ``Property module tests`` =
   let ``fails for false`` () =
     assertShrunk (nameof ``fails for false, skipped``) "[0]"
 
+  [<Property(skipReason)>]
+  let ``Result with Error shrinks, skipped`` (i: int) =
+    if i > 10 then
+      Error ()
+    else
+      Ok ()
+  [<Fact>]
+  let ``Result with Error shrinks`` () =
+    assertShrunk (nameof ``Result with Error shrinks, skipped``) "[11]"
+
   [<Property>]
   let ``Can generate an int`` (i: int) =
     printfn "Test input: %i" i
@@ -322,15 +332,41 @@ module ``Asynchronous tests`` =
     assertShrunk (nameof ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped``) "[11]"
     
   [<Property(skipReason)>]
-  let ``AsyncBuilder with exception shrinks, skipped`` (i: int) =
+  let ``Async with exception shrinks, skipped`` (i: int) =
     async {
       do! Async.Sleep 100
       if i > 10 then
         raise <| Exception()
     }
   [<Fact>]
-  let ``AsyncBuilder with exception shrinks`` () =
-    assertShrunk (nameof ``AsyncBuilder with exception shrinks, skipped``) "[11]"
+  let ``Async with exception shrinks`` () =
+    assertShrunk (nameof ``Async with exception shrinks, skipped``) "[11]"
+
+  [<Property(skipReason)>]
+  let ``AsyncResult with Error shrinks, skipped`` (i: int) =
+    async {
+      do! Async.Sleep 100
+      if i > 10 then
+        return Error ()
+      else
+        return Ok ()
+    }
+  [<Fact>]
+  let ``AsyncResult with Error shrinks`` () =
+    assertShrunk (nameof ``AsyncResult with Error shrinks, skipped``) "[11]"
+
+  [<Property(skipReason)>]
+  let ``TaskResult with Error shrinks, skipped`` (i: int) =
+    task {
+      do! Task.Delay 100
+      if i > 10 then
+        return Error ()
+      else
+        return Ok ()
+    }
+  [<Fact>]
+  let ``TaskResult with Error shrinks`` () =
+    assertShrunk (nameof ``TaskResult with Error shrinks, skipped``) "[11]"
 
 
 module ``IDisposable test module`` =

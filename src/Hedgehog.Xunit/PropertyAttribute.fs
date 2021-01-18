@@ -90,8 +90,7 @@ module internal PropertyHelper =
   type private Marker = class end
   let private genxAutoBoxWith<'T> x = x |> GenX.autoWith<'T> |> Gen.map box
   let private genxAutoBoxWithMethodInfo =
-    typeof<Marker>.DeclaringType.GetTypeInfo().DeclaredMethods
-    |> Seq.find (fun m -> m.Name = nameof(genxAutoBoxWith))
+    typeof<Marker>.DeclaringType.GetTypeInfo().GetDeclaredMethod(nameof genxAutoBoxWith)
 
   let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
     let classAutoGenConfig, classTests =
@@ -117,7 +116,7 @@ module internal PropertyHelper =
           p.GetMethod.IsStatic &&
           p.GetMethod.ReturnType = typeof<AutoGenConfig>
         ) |> Seq.tryExactlyOne
-        |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof(AutoGenConfig)}.
+        |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof AutoGenConfig}.
 
 An example type definition:
 
@@ -133,7 +132,14 @@ type {t.Name} =
     | :? IDisposable as d -> d.Dispose()
     | _ -> ()
 
+  let resultIsOk r =
+    match r with
+    | Ok _ -> true
+    | Error _ -> false
+
   open System.Threading.Tasks
+  open System.Threading
+  open System.Linq
   let report (testMethod:MethodInfo) testClass testClassInstance =
     let config, tests = parseAttributes testMethod testClass
     let gens =
@@ -147,16 +153,38 @@ type {t.Name} =
         :?> Gen<obj>)
       |> List.ofArray
       |> ListGen.sequence
+    let rec toProperty (x: obj) =
+      match x with
+      | :? bool        as b -> Property.ofBool b
+      | :? Task<unit>  as t -> Async.AwaitTask t |> toProperty
+      | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition().IsSubclassOf typeof<Task> ->
+        typeof<Async>
+          .GetMethods()
+          .First(fun x -> x.Name = nameof Async.AwaitTask && x.IsGenericMethod)
+          .MakeGenericMethod(x.GetType().GetGenericArguments())
+          .Invoke(null, [|x|])
+        |> toProperty
+      | :? Task        as t -> Async.AwaitTask t |> toProperty
+      | :? Async<unit> as a -> Async.RunSynchronously(a, cancellationToken = CancellationToken.None) |> toProperty
+      | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition() = typedefof<Async<_>> ->
+        typeof<Async> // Invoked with Reflection because we can't cast an Async<MyType> to Async<obj> https://stackoverflow.com/a/26167206
+          .GetMethod(nameof Async.RunSynchronously)
+          .MakeGenericMethod(x.GetType().GetGenericArguments())
+          .Invoke(null, [| x; None; Some CancellationToken.None |])
+        |> toProperty
+      | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition() = typedefof<Result<_,_>> ->
+        typeof<Marker>
+          .DeclaringType
+          .GetTypeInfo()
+          .GetDeclaredMethod(nameof resultIsOk)
+          .MakeGenericMethod(x.GetType().GetGenericArguments())
+          .Invoke(null, [|x|])
+        |> toProperty
+      | _                        -> Property.success ()
     let invoke args =
       try
         testMethod.Invoke(testClassInstance, args |> Array.ofList)
-        |> function
-        | :? bool        as b -> Property.ofBool b
-        | :? Task        as t -> t.GetAwaiter().GetResult()
-                                 Property.success ()
-        | :? Async<unit> as a -> Async.RunSynchronously(a, cancellationToken = System.Threading.CancellationToken.None)
-                                 Property.success ()
-        | _                   -> Property.success ()
+        |> toProperty
       finally
         List.iter dispose args
         
