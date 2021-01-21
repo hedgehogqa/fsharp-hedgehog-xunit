@@ -17,7 +17,7 @@ module ``Property module tests`` =
   type private Marker = class end
   let getMethod = typeof<Marker>.DeclaringType.GetMethod
   let assertShrunk methodName expected =
-    let report = PropertyHelper.report (getMethod methodName) typeof<Marker>.DeclaringType null
+    let report = InternalLogic.report (getMethod methodName) typeof<Marker>.DeclaringType null
     match report.Status with
     | Status.Failed r ->
       Assert.Equal(expected, Journal.toList r.Journal |> Seq.head)
@@ -77,7 +77,7 @@ module ``Property module tests`` =
   let ``runs once with 13`` () = ()
   [<Fact>]
   let ``Tests 'runs once with 13'`` () =
-    let config, tests = PropertyHelper.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    let config, tests = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
@@ -86,7 +86,7 @@ module ``Property module tests`` =
   let ``runs with 13 once`` () = ()
   [<Fact>]
   let ``Tests 'runs with 13 once'`` () =
-    let config, tests = PropertyHelper.parseAttributes (nameof ``runs with 13 once`` |> getMethod) typeof<Marker>.DeclaringType
+    let config, tests = InternalLogic.parseAttributes (nameof ``runs with 13 once`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
@@ -127,14 +127,14 @@ module ``Property module tests`` =
   let ``unresolved generics fail, skipped`` _ = ()
   [<Fact>]
   let ``unresolved generics fail`` () =
-    let e = Assert.Throws<ArgumentException>(fun () -> PropertyHelper.report (getMethod (nameof ``unresolved generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
+    let e = Assert.Throws<ArgumentException>(fun () -> InternalLogic.report (getMethod (nameof ``unresolved generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
     Assert.Equal("The parameter type 'a' at index 0 is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete. (Parameter '_arg1')", e.Message)
 
   [<Property(Skip = skipReason)>]
   let ``unresolved nested generics fail, skipped`` (_: _ list) = ()
   [<Fact>]
   let ``unresolved nested generics fail`` () =
-    let e = Assert.Throws<ArgumentException>(fun () -> PropertyHelper.report (getMethod (nameof ``unresolved nested generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
+    let e = Assert.Throws<ArgumentException>(fun () -> InternalLogic.report (getMethod (nameof ``unresolved nested generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
     Assert.Equal("The parameter type 'FSharpList`1' at index 0 is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete. (Parameter '_arg1')", e.Message)
 
   [<Property>]
@@ -174,7 +174,7 @@ module ``Property module with AutoGenConfig tests`` =
     [<Fact>]
     let ``Instance property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Instance property fails, skipped``)
-      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
+      let e = Assert.Throws<Exception>(fun () -> InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
       Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one static property that returns an AutoGenConfig.
 
 An example type definition:
@@ -190,7 +190,7 @@ type NonstaticProperty =
     [<Fact>]
     let ``Non AutoGenConfig static property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Non AutoGenConfig static property fails, skipped``)
-      let e = Assert.Throws<Exception>(fun () -> PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
+      let e = Assert.Throws<Exception>(fun () -> InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
       Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one static property that returns an AutoGenConfig.
 
 An example type definition:
@@ -219,7 +219,7 @@ module ``Module with <Properties> tests`` =
   [<Fact>]
   let ``Module <Properties> tests (count) works`` () =
     let testMethod = getMethod (nameof ``Module <Properties> works``)
-    let _, tests = PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType
+    let _, tests = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
     Assert.Equal(200<tests>, tests)
 
   [<Property(300<tests>)>]
@@ -227,7 +227,7 @@ module ``Module with <Properties> tests`` =
   [<Fact>]
   let ``Module <Properties> tests (count) is overriden by Method <Property>`` () =
     let testMethod = getMethod (nameof ``Module <Properties> tests (count) is overriden by Method <Property>, skipped``)
-    let _, tests = PropertyHelper.parseAttributes testMethod typeof<Marker>.DeclaringType
+    let _, tests = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
     Assert.Equal(300<tests>, tests)
 
 
@@ -266,7 +266,7 @@ module ``Properties named arg tests`` =
   let ``runs once with 13`` () = ()
   [<Fact>]
   let ``Tests 'runs once with 13'`` () =
-    let config, tests = PropertyHelper.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    let config, tests = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
@@ -280,7 +280,7 @@ module ``Properties (tests, config) tests`` =
   let ``runs once with 13`` () = ()
   [<Fact>]
   let ``Tests 'runs once with 13'`` () =
-    let config, tests = PropertyHelper.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    let config, tests = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
@@ -294,7 +294,7 @@ module ``Properties (tests count) tests`` =
   let ``runs once`` () = ()
   [<Fact>]
   let ``Tests 'runs once'`` () =
-    let _, tests = PropertyHelper.parseAttributes (nameof ``runs once`` |> getMethod) typeof<Marker>.DeclaringType
+    let _, tests = InternalLogic.parseAttributes (nameof ``runs once`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(1<tests>, tests)
 
 
@@ -303,7 +303,7 @@ module ``Asynchronous tests`` =
   type private Marker = class end
   let getMethod = typeof<Marker>.DeclaringType.GetMethod
   let assertShrunk methodName expected =
-    let report = PropertyHelper.report (getMethod methodName) typeof<Marker>.DeclaringType null
+    let report = InternalLogic.report (getMethod methodName) typeof<Marker>.DeclaringType null
     match report.Status with
     | Status.Failed r ->
       Assert.Equal(expected, Journal.toList r.Journal |> Seq.head)
@@ -385,7 +385,7 @@ module ``IDisposable test module`` =
     if i > 10 then raise <| Exception()
   [<Fact>]
   let ``IDisposable arg get disposed even if exception thrown`` () =
-    let report = PropertyHelper.report (getMethod (nameof ``IDisposable arg get disposed even if exception thrown, skipped``)) typeof<DisposableImplementation>.DeclaringType null
+    let report = InternalLogic.report (getMethod (nameof ``IDisposable arg get disposed even if exception thrown, skipped``)) typeof<DisposableImplementation>.DeclaringType null
     match report.Status with
     | Status.Failed _ ->
       Assert.NotEqual(0, runs)
