@@ -39,6 +39,21 @@ module ``Property module tests`` =
   let ``Result with Error shrinks`` () =
     assertShrunk (nameof ``Result with Error shrinks, skipped``) "[11]"
 
+  [<Property(skipReason)>]
+  let ``Result with Error reports exception with Error value, skipped`` (i: int) =
+    if i > 10 then
+      Error "Too many digits!"
+    else
+      Ok ()
+  [<Fact>]
+  let ``Result with Error reports exception with Error value`` () =
+    let report = InternalLogic.report (nameof ``Result with Error reports exception with Error value, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    match report.Status with
+    | Status.Failed r ->
+      let errorMessage = r.Journal |> Journal.toList |> Seq.skip 1 |> Seq.exactlyOne
+      Assert.Contains("System.Exception: Result is in the Error case with the following value:\r\n\"Too many digits!\"", errorMessage)
+    | _ -> failwith "impossible"
+
   [<Property>]
   let ``Can generate an int`` (i: int) =
     printfn "Test input: %i" i

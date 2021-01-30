@@ -73,7 +73,7 @@ type {t.Name} =
 let resultIsOk r =
   match r with
   | Ok _ -> true
-  | Error _ -> false
+  | Error e -> failwith $"Result is in the Error case with the following value:\r\n%A{e}"
 
 open System.Threading.Tasks
 open System.Threading
