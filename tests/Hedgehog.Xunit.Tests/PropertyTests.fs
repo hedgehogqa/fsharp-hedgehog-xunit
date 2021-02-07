@@ -20,7 +20,7 @@ module ``Property module tests`` =
     let report = InternalLogic.report (getMethod methodName) typeof<Marker>.DeclaringType null
     match report.Status with
     | Status.Failed r ->
-      Assert.Equal(expected, Journal.toList r.Journal |> Seq.head)
+      Assert.Equal(expected, r.Journal |> Journal.eval |> Seq.head)
     | _ -> failwith "impossible"
     
   [<Property(Skip = skipReason)>]
@@ -50,7 +50,7 @@ module ``Property module tests`` =
     let report = InternalLogic.report (nameof ``Result with Error reports exception with Error value, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
     match report.Status with
     | Status.Failed r ->
-      let errorMessage = r.Journal |> Journal.toList |> Seq.skip 1 |> Seq.exactlyOne
+      let errorMessage = r.Journal |> Journal.eval |> Seq.skip 1 |> Seq.exactlyOne
       Assert.Contains("System.Exception: Result is in the Error case with the following value:\r\n\"Too many digits!\"", errorMessage)
     | _ -> failwith "impossible"
 
@@ -321,7 +321,7 @@ module ``Asynchronous tests`` =
     let report = InternalLogic.report (getMethod methodName) typeof<Marker>.DeclaringType null
     match report.Status with
     | Status.Failed r ->
-      Assert.Equal(expected, Journal.toList r.Journal |> Seq.head)
+      Assert.Equal(expected, r.Journal |> Journal.eval |> Seq.head)
     | _ -> failwith "impossible"
 
   open System.Threading.Tasks

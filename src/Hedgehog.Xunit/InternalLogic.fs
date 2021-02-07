@@ -132,4 +132,7 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
       |> toProperty
     finally
       List.iter dispose args
-  Property.forAll gens invoke |> Property.report' tests
+  let config =
+    PropertyConfig.defaultConfig
+    |> PropertyConfig.withTests tests
+  Property.forAll invoke gens |> Property.reportWith config
