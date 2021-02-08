@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.2.0 (2021-02-07)
+
+* Updated to Hedgehog.Experimental 0.4.0
+* If a test fails due to returning a `Result` in an `Error` state, its `Exception` will report the value in `Error`.
+
 ### 0.1.3 (2021-01-18)
 
 * `PropertiesAttribute` extends `Attribute` - it no longer extends `PropertyAttribute`.
