@@ -51,7 +51,7 @@ module ``Property module tests`` =
     match report.Status with
     | Status.Failed r ->
       let errorMessage = r.Journal |> Journal.eval |> Seq.skip 1 |> Seq.exactlyOne
-      Assert.Contains("System.Exception: Result is in the Error case with the following value:\r\n\"Too many digits!\"", errorMessage)
+      Assert.Contains($"System.Exception: Result is in the Error case with the following value:{Environment.NewLine}\"Too many digits!\"", errorMessage)
     | _ -> failwith "impossible"
 
   [<Property>]
