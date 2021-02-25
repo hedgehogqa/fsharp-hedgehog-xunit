@@ -419,3 +419,21 @@ module ``PropertyTestCaseDiscoverer works`` =
   [<Fact>]
   let ``PropertyAttribute is discovered and run`` () =
     Assert.True(runs > 0)
+
+module TupleTests =
+  [<Fact>]
+  let ``Non-Hedgehog.Xunit passes`` () =
+    Property.check <| property {
+      let! a, b =
+        GenX.defaults
+        |> AutoGenConfig.addGenerator (Gen.constant (1, 2))
+        |> GenX.autoWith<int*int>
+      Assert.Equal(1, a)
+      Assert.Equal(2, b)
+    }
+  
+  type CustomTupleGen = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant (1, 2))
+  [<Property(typeof<CustomTupleGen>)>]
+  let ``Hedgehog.Xunit requires another param to pass`` (((a,b) : int*int), _: bool) =
+    Assert.Equal(1, a)
+    Assert.Equal(2, b)

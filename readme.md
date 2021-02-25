@@ -201,6 +201,85 @@ module ___ =
     i = 13
 ```
 
+## Known issue with tuples
+
+`GenX.autoWith` works with tuples.
+
+```f#
+[<Fact>]
+let ``This passes`` () =
+  Property.check <| property {
+      let! a, b =
+        GenX.defaults
+        |> AutoGenConfig.addGenerator (Gen.constant (1, 2))
+        |> GenX.autoWith<int*int>
+      Assert.Equal(1, a)
+      Assert.Equal(2, b)
+  }
+```
+
+However, blindly converting it to `Hedgehog.Xunit` will fail.
+
+```f#
+type CustomTupleGen = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant (1, 2))
+[<Property(typeof<CustomTupleGen>)>]
+let ``This fails`` ((a,b) : int*int) =
+  Assert.Equal(1, a)
+  Assert.Equal(2, b)
+```
+
+This is because F# functions whose only parameter is a tuple will generate IL that un-tuples that parameter, yielding a function whose arity is the number of elements in the tuple. More concretely, this F#
+
+```f#
+let ``This fails`` ((a,b) : int*int) = ()
+```
+
+yields this IL (in debug mode)
+
+```IL
+.method public static 
+    void 'This fails' (
+        valuetype [System.Private.CoreLib]System.Int32 _arg1_0,
+        valuetype [System.Private.CoreLib]System.Int32 _arg1_1
+    ) cil managed 
+{
+    .maxstack 8
+    IL_0000: ret
+}
+```
+
+Due to this behavior `Hedgehog.Xunit` can't know that the original parameter was a tuple. It will therefore not use the registered tuple generator. A workaround is to pass a second (possibly unused) parameter.
+
+```f#
+type CustomTupleGen = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant (1, 2))
+[<Property(typeof<CustomTupleGen>)>]
+let ``This passes`` (((a,b) : int*int), _: bool) =
+  Assert.Equal(1, a)
+  Assert.Equal(2, b)
+```
+
+The updated F#
+
+```f#
+let ``This passes`` (((a,b) : int*int), _: bool) = ()
+```
+
+yields this IL
+
+```IL
+.method public static 
+    void 'This passes' (
+        class [System.Private.CoreLib]System.Tuple`2<valuetype [System.Private.CoreLib]System.Int32, valuetype [System.Private.CoreLib]System.Int32> _arg1,
+        valuetype [System.Private.CoreLib]System.Boolean _arg2
+    ) cil managed 
+{
+    .maxstack 8
+    IL_0000: ret
+}
+```
+
+[Source of IL.](https://sharplab.io/#v2:DYLgZgzgNALiCWwoBMQGoA+BbA9sgrsAKYAEAsgJ5l6FECwAUI8TCQHY4BOWAhsAGL42AYxjwcbEjxIAjEgF4pJNLMbMirAAaaAKgAt4EEmB6II2kgApLPKDICUJECXhsYAKlcxHiy/bUMLCTa+oYkAA48EBBE5ppW1rYOTi5unm72UCQA+s4yODjAPlb2QA)
+
 [hedgehog]: https://github.com/hedgehogqa/fsharp-hedgehog
 [xunit]: https://xunit.net/
 
