@@ -18,11 +18,8 @@ type PropertyAttribute(autoGenConfig, tests, shrinks, skip) =
   new(autoGenConfig)                 = PropertyAttribute(Some autoGenConfig, None      , None        , null)
   new(autoGenConfig, tests)          = PropertyAttribute(Some autoGenConfig, Some tests, None        , null)
   new(autoGenConfig, tests, shrinks) = PropertyAttribute(Some autoGenConfig, Some tests, Some shrinks, null)
-  new(tests, autoGenConfig)          = PropertyAttribute(Some autoGenConfig, Some tests, None        , null)
-  new(autoGenConfig, skip)           = PropertyAttribute(Some autoGenConfig, None      , None        , skip)
   new(tests)                         = PropertyAttribute(None              , Some tests, None        , null)
   new(tests, shrinks)                = PropertyAttribute(None              , Some tests, Some shrinks, null)
-  new(skip)                          = PropertyAttribute(None              , None      , None        , skip)
 
   // https://github.com/dotnet/fsharp/issues/4154 sigh
   /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.
@@ -58,7 +55,6 @@ type PropertiesAttribute(autoGenConfig, tests) =
   new(autoGenConfig)             = PropertiesAttribute(Some autoGenConfig, None      )
   new(tests)                     = PropertiesAttribute(None              , Some tests)
   new(autoGenConfig:Type, tests) = PropertiesAttribute(Some autoGenConfig, Some tests)
-  new(tests, autoGenConfig:Type) = PropertiesAttribute(Some autoGenConfig, Some tests)
 
   // https://github.com/dotnet/fsharp/issues/4154 sigh
   /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.

@@ -29,7 +29,7 @@ module ``Property module tests`` =
   let ``fails for false`` () =
     assertShrunk (nameof ``fails for false, skipped``) "[0]"
 
-  [<Property(skipReason)>]
+  [<Property(Skip = skipReason)>]
   let ``Result with Error shrinks, skipped`` (i: int) =
     if i > 10 then
       Error ()
@@ -39,7 +39,7 @@ module ``Property module tests`` =
   let ``Result with Error shrinks`` () =
     assertShrunk (nameof ``Result with Error shrinks, skipped``) "[11]"
 
-  [<Property(skipReason)>]
+  [<Property(Skip = skipReason)>]
   let ``Result with Error reports exception with Error value, skipped`` (i: int) =
     if i > 10 then
       Error "Too many digits!"
@@ -87,16 +87,6 @@ module ``Property module tests`` =
   [<Fact>]
   let ``Can shrink an int and string`` () =
     assertShrunk (nameof ``Can shrink an int and string, skipped``) "[2; \"b\"]"
-
-  [<Property(1<tests>, typeof<Int13>)>]
-  let ``runs once with 13`` () = ()
-  [<Fact>]
-  let ``Tests 'runs once with 13'`` () =
-    let config, tests, shrinks = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
-    Assert.Equal(Some 1<tests>, tests)
-    Assert.Equal(None, shrinks)
-    let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
-    Assert.Equal(13, generated)
 
   [<Property(typeof<Int13>, 1<tests>)>]
   let ``runs with 13 once`` () = ()
@@ -193,7 +183,7 @@ module ``Property module with AutoGenConfig tests`` =
     type private Marker = class end
 
     type NonstaticProperty = member _.__ = GenX.defaults
-    [<Property(typeof<NonstaticProperty>, skipReason)>]
+    [<Property(typeof<NonstaticProperty>, Skip = skipReason)>]
     let ``Instance property fails, skipped`` () = ()
     [<Fact>]
     let ``Instance property fails`` () =
@@ -209,7 +199,7 @@ type NonstaticProperty =
 ", e.Message)
 
     type NonAutoGenConfig = static member __ = ()
-    [<Property(typeof<NonAutoGenConfig>, skipReason)>]
+    [<Property(typeof<NonAutoGenConfig>, Skip = skipReason)>]
     let ``Non AutoGenConfig static property fails, skipped`` () = ()
     [<Fact>]
     let ``Non AutoGenConfig static property fails`` () =
@@ -296,20 +286,6 @@ module ``Properties named arg tests`` =
     Assert.Equal(13, generated)
 
 
-[<Properties(1<tests>, typeof<Int13>)>]
-module ``Properties (tests, config) tests`` =
-  type private Marker = class end
-  let getMethod = typeof<Marker>.DeclaringType.GetMethod
-  [<Property>]
-  let ``runs once with 13`` () = ()
-  [<Fact>]
-  let ``Tests 'runs once with 13'`` () =
-    let config, tests, _ = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
-    Assert.Equal(Some 1<tests>, tests)
-    let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
-    Assert.Equal(13, generated)
-
-
 [<Properties(1<tests>)>]
 module ``Properties (tests count) tests`` =
   type private Marker = class end
@@ -334,7 +310,7 @@ module ``Asynchronous tests`` =
     | _ -> failwith "impossible"
 
   open System.Threading.Tasks
-  [<Property(skipReason)>]
+  [<Property(Skip = skipReason)>]
   let ``Returning Task with exception fails, skipped`` (i: int) : Task =
     if i > 10 then
       Exception() |> Task.FromException
@@ -344,7 +320,7 @@ module ``Asynchronous tests`` =
     assertShrunk (nameof ``Returning Task with exception fails, skipped``) "[11]"
 
   open FSharp.Control.Tasks
-  [<Property(skipReason)>]
+  [<Property(Skip = skipReason)>]
   let ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped`` (i: int) : Task<unit> =
     task {
       do! Task.Delay 100
@@ -355,7 +331,7 @@ module ``Asynchronous tests`` =
   let ``TaskBuilder (returning Task<unit>) with exception shrinks`` () =
     assertShrunk (nameof ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped``) "[11]"
     
-  [<Property(skipReason)>]
+  [<Property(Skip = skipReason)>]
   let ``Async with exception shrinks, skipped`` (i: int) =
     async {
       do! Async.Sleep 100
@@ -366,7 +342,7 @@ module ``Asynchronous tests`` =
   let ``Async with exception shrinks`` () =
     assertShrunk (nameof ``Async with exception shrinks, skipped``) "[11]"
 
-  [<Property(skipReason)>]
+  [<Property(Skip = skipReason)>]
   let ``AsyncResult with Error shrinks, skipped`` (i: int) =
     async {
       do! Async.Sleep 100
@@ -379,7 +355,7 @@ module ``Asynchronous tests`` =
   let ``AsyncResult with Error shrinks`` () =
     assertShrunk (nameof ``AsyncResult with Error shrinks, skipped``) "[11]"
 
-  [<Property(skipReason)>]
+  [<Property(Skip = skipReason)>]
   let ``TaskResult with Error shrinks, skipped`` (i: int) =
     task {
       do! Task.Delay 100
@@ -403,7 +379,7 @@ module ``IDisposable test module`` =
         disposes <- disposes + 1
   let getMethod = typeof<DisposableImplementation>.DeclaringType.GetMethod
 
-  [<Property(skipReason)>]
+  [<Property(Skip = skipReason)>]
   let ``IDisposable arg get disposed even if exception thrown, skipped`` (_: DisposableImplementation) (i: int) =
     runs <- runs + 1
     if i > 10 then raise <| Exception()
