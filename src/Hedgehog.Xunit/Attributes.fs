@@ -7,19 +7,22 @@ open Hedgehog
 /// Generates arguments using GenX.auto (or autoWith if you provide an AutoGenConfig), then runs Property.check
 [<AttributeUsage(AttributeTargets.Method ||| AttributeTargets.Property, AllowMultiple = false)>]
 [<XunitTestCaseDiscoverer("XunitOverrides+PropertyTestCaseDiscoverer", "Hedgehog.Xunit")>]
-type PropertyAttribute(autoGenConfig, tests, skip) =
+type PropertyAttribute(autoGenConfig, tests, shrinks, skip) =
   inherit Xunit.FactAttribute(Skip = skip)
 
-  let mutable _autoGenConfig: Type       option = autoGenConfig
-  let mutable _tests        : int<tests> option = tests
+  let mutable _autoGenConfig: Type         option = autoGenConfig
+  let mutable _tests        : int<tests>   option = tests
+  let mutable _shrinks      : int<shrinks> option = shrinks
 
-  new()                     = PropertyAttribute(None              , None      , null)
-  new(autoGenConfig)        = PropertyAttribute(Some autoGenConfig, None      , null)
-  new(autoGenConfig, tests) = PropertyAttribute(Some autoGenConfig, Some tests, null)
-  new(tests, autoGenConfig) = PropertyAttribute(Some autoGenConfig, Some tests, null)
-  new(autoGenConfig, skip)  = PropertyAttribute(Some autoGenConfig, None      , skip)
-  new(tests)                = PropertyAttribute(None              , Some tests, null)
-  new(skip)                 = PropertyAttribute(None              , None      , skip)
+  new()                              = PropertyAttribute(None              , None      , None        , null)
+  new(autoGenConfig)                 = PropertyAttribute(Some autoGenConfig, None      , None        , null)
+  new(autoGenConfig, tests)          = PropertyAttribute(Some autoGenConfig, Some tests, None        , null)
+  new(autoGenConfig, tests, shrinks) = PropertyAttribute(Some autoGenConfig, Some tests, Some shrinks, null)
+  new(tests, autoGenConfig)          = PropertyAttribute(Some autoGenConfig, Some tests, None        , null)
+  new(autoGenConfig, skip)           = PropertyAttribute(Some autoGenConfig, None      , None        , skip)
+  new(tests)                         = PropertyAttribute(None              , Some tests, None        , null)
+  new(tests, shrinks)                = PropertyAttribute(None              , Some tests, Some shrinks, null)
+  new(skip)                          = PropertyAttribute(None              , None      , None        , skip)
 
   // https://github.com/dotnet/fsharp/issues/4154 sigh
   /// This requires a type with a single static member (with any name) that returns an AutoGenConfig.
@@ -37,8 +40,10 @@ type PropertyAttribute(autoGenConfig, tests, skip) =
   /// ```
   member          _.AutoGenConfig    with set v = _autoGenConfig <- Some v
   member          _.Tests            with set v = _tests         <- Some v
+  member          _.Shrinks          with set v = _shrinks       <- Some v
   member internal _.GetAutoGenConfig            = _autoGenConfig
   member internal _.GetTests                    = _tests
+  member internal _.GetShrinks                  = _shrinks
 
 
 /// Set a default AutoGenConfig or <tests> for all [<Property>] attributed methods in this class/module

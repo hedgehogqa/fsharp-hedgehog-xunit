@@ -92,8 +92,9 @@ module ``Property module tests`` =
   let ``runs once with 13`` () = ()
   [<Fact>]
   let ``Tests 'runs once with 13'`` () =
-    let config, tests = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
-    Assert.Equal(1<tests>, tests)
+    let config, tests, shrinks = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(Some 1<tests>, tests)
+    Assert.Equal(None, shrinks)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
 
@@ -101,8 +102,9 @@ module ``Property module tests`` =
   let ``runs with 13 once`` () = ()
   [<Fact>]
   let ``Tests 'runs with 13 once'`` () =
-    let config, tests = InternalLogic.parseAttributes (nameof ``runs with 13 once`` |> getMethod) typeof<Marker>.DeclaringType
-    Assert.Equal(1<tests>, tests)
+    let config, tests, shrinks = InternalLogic.parseAttributes (nameof ``runs with 13 once`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(None, shrinks)
+    Assert.Equal(Some 1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
 
@@ -241,16 +243,16 @@ module ``Module with <Properties> tests`` =
   [<Fact>]
   let ``Module <Properties> tests (count) works`` () =
     let testMethod = getMethod (nameof ``Module <Properties> works``)
-    let _, tests = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
-    Assert.Equal(200<tests>, tests)
+    let _, tests, _ = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
+    Assert.Equal(Some 200<tests>, tests)
 
   [<Property(300<tests>)>]
   let ``Module <Properties> tests (count) is overriden by Method <Property>, skipped`` (_: int) = ()
   [<Fact>]
   let ``Module <Properties> tests (count) is overriden by Method <Property>`` () =
     let testMethod = getMethod (nameof ``Module <Properties> tests (count) is overriden by Method <Property>, skipped``)
-    let _, tests = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
-    Assert.Equal(300<tests>, tests)
+    let _, tests, _ = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
+    Assert.Equal(Some 300<tests>, tests)
 
 
 [<Properties(typeof<Int13>)>]
@@ -288,8 +290,8 @@ module ``Properties named arg tests`` =
   let ``runs once with 13`` () = ()
   [<Fact>]
   let ``Tests 'runs once with 13'`` () =
-    let config, tests = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
-    Assert.Equal(1<tests>, tests)
+    let config, tests, _ = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(Some 1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
 
@@ -302,8 +304,8 @@ module ``Properties (tests, config) tests`` =
   let ``runs once with 13`` () = ()
   [<Fact>]
   let ``Tests 'runs once with 13'`` () =
-    let config, tests = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
-    Assert.Equal(1<tests>, tests)
+    let config, tests, _ = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(Some 1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
 
@@ -316,8 +318,8 @@ module ``Properties (tests count) tests`` =
   let ``runs once`` () = ()
   [<Fact>]
   let ``Tests 'runs once'`` () =
-    let _, tests = InternalLogic.parseAttributes (nameof ``runs once`` |> getMethod) typeof<Marker>.DeclaringType
-    Assert.Equal(1<tests>, tests)
+    let _, tests, _ = InternalLogic.parseAttributes (nameof ``runs once`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(Some 1<tests>, tests)
 
 
 module ``Asynchronous tests`` =
@@ -444,3 +446,37 @@ module TupleTests =
   let ``Hedgehog.Xunit requires another param to pass`` (((a,b) : int*int), _: bool) =
     Assert.Equal(1, a)
     Assert.Equal(2, b)
+
+module ShrinkTests =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+
+  [<Property(100<tests>, 0<shrinks>, Skip = skipReason)>]
+  let ``0 shrinks, skipped`` i =
+    i < 2500
+  [<Fact>]
+  let ``0 shrinks`` () =
+    let _, _, shrinks = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(Some 0<shrinks>, shrinks)
+
+  [<Property(Shrinks = 1<shrinks>, Skip = skipReason)>]
+  let ``1 shrinks, run, skipped`` i =
+    i < 2500
+  [<Fact>]
+  let ``1 shrinks, run`` () =
+    let report = InternalLogic.report (nameof ``1 shrinks, run, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    match report.Status with
+    | Failed data ->
+      Assert.Equal(1<shrinks>, data.Shrinks)
+    | _ -> failwith "impossible"
+
+  [<Property(typeof<Int13>, 100<tests>, 0<shrinks>, Skip = skipReason)>]
+  let ``0 shrinks, run, skipped`` () : unit =
+    failwith "oops"
+  [<Fact>]
+  let ``0 shrinks, run`` () =
+    let report = InternalLogic.report (nameof ``0 shrinks, run, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    match report.Status with
+    | Failed data ->
+      Assert.Equal(0<shrinks>, data.Shrinks)
+    | _ -> failwith "impossible"

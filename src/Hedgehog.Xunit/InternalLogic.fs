@@ -29,13 +29,14 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
     |> function
     | Some x -> x.GetAutoGenConfig, x.GetTests
     | None   -> None              , None
-  let configType, tests =
+  let configType, tests, shrinks =
     testMethod.GetCustomAttributes(typeof<PropertyAttribute>)
     |> Seq.exactlyOne
     :?> PropertyAttribute
     |> fun methodAttribute ->
       methodAttribute.GetAutoGenConfig ++ classAutoGenConfig,
-      methodAttribute.GetTests         ++ classTests        |> Option.defaultValue 100<tests>
+      methodAttribute.GetTests         ++ classTests,
+      methodAttribute.GetShrinks
   let config =
     match configType with
     | None -> GenX.defaults
@@ -54,7 +55,7 @@ type {t.Name} =
     GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 "       |> fun x -> x.GetMethod.Invoke(null, [||])
       :?> AutoGenConfig
-  config, tests
+  config, tests, shrinks
 
 let resultIsOk r =
   match r with
@@ -99,10 +100,18 @@ let dispose (o:obj) =
   | :? IDisposable as d -> d.Dispose()
   | _ -> ()
 
+let withTests = function
+  | Some x -> PropertyConfig.withTests x
+  | None -> id
+
+let withShrinks = function
+  | Some x -> PropertyConfig.withShrinks x
+  | None -> PropertyConfig.withoutShrinks
+
 let report (testMethod:MethodInfo) testClass testClassInstance =
   if testMethod.ReturnParameter.ParameterType.ContainsGenericParameters then
     invalidOp $"The return type '{testMethod.ReturnParameter.ParameterType.Name}' is generic, which is unsupported. Consider using a type annotation to make the return type concrete."
-  let config, tests = parseAttributes testMethod testClass
+  let config, tests, shrinks = parseAttributes testMethod testClass
   let gens =
     testMethod.GetParameters()
     |> Array.mapi (fun i p ->
@@ -122,5 +131,6 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
       List.iter dispose args
   let config =
     PropertyConfig.defaultConfig
-    |> PropertyConfig.withTests tests
+    |> withTests tests
+    |> withShrinks shrinks
   Property.forAll invoke gens |> Property.reportWith config
