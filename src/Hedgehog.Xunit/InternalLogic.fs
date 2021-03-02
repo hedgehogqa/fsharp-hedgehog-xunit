@@ -100,6 +100,8 @@ let dispose (o:obj) =
   | _ -> ()
 
 let report (testMethod:MethodInfo) testClass testClassInstance =
+  if testMethod.ReturnParameter.ParameterType.ContainsGenericParameters then
+    invalidOp $"The return type '{testMethod.ReturnParameter.ParameterType.Name}' is generic, which is unsupported. Consider using a type annotation to make the return type concrete."
   let config, tests = parseAttributes testMethod testClass
   let gens =
     testMethod.GetParameters()
