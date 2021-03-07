@@ -22,13 +22,13 @@ let private genxAutoBoxWithMethodInfo =
   typeof<Marker>.DeclaringType.GetTypeInfo().GetDeclaredMethod(nameof genxAutoBoxWith)
 
 let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
-  let classAutoGenConfig, classTests =
+  let classAutoGenConfig, classTests, classShrinks =
     testClass.GetCustomAttributes(typeof<PropertiesAttribute>)
     |> Seq.tryExactlyOne
     |> Option.map (fun x -> x :?> PropertiesAttribute)
     |> function
-    | Some x -> x.GetAutoGenConfig, x.GetTests
-    | None   -> None              , None
+    | Some x -> x.GetAutoGenConfig, x.GetTests, x.GetShrinks
+    | None   -> None              , None      , None
   let configType, tests, shrinks =
     testMethod.GetCustomAttributes(typeof<PropertyAttribute>)
     |> Seq.exactlyOne
@@ -36,7 +36,7 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
     |> fun methodAttribute ->
       methodAttribute.GetAutoGenConfig ++ classAutoGenConfig,
       methodAttribute.GetTests         ++ classTests,
-      methodAttribute.GetShrinks
+      methodAttribute.GetShrinks       ++ classShrinks
   let config =
     match configType with
     | None -> GenX.defaults

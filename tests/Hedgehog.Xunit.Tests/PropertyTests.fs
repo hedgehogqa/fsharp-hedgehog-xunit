@@ -456,3 +456,76 @@ module ShrinkTests =
     | Failed data ->
       Assert.Equal(0<shrinks>, data.Shrinks)
     | _ -> failwith "impossible"
+
+type Forever = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant "...")
+[<Properties(typeof<Forever>, 100<tests>, 0<shrinks>)>]
+module ``Module with <Properties> tests, 0 shrinks`` =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+
+  [<Property(Skip = skipReason)>]
+  let ``0 shrinks, skipped`` i =
+    i < 2500
+  [<Fact>]
+  let ``0 shrinks`` () =
+    let _, _, shrinks = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(Some 0<shrinks>, shrinks)
+
+  [<Property(Shrinks = 1<shrinks>, Skip = skipReason)>]
+  let ``1 shrinks, run, skipped`` i =
+    i < 2500
+  [<Fact>]
+  let ``1 shrinks, run`` () =
+    let report = InternalLogic.report (nameof ``1 shrinks, run, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    match report.Status with
+    | Failed data ->
+      Assert.Equal(1<shrinks>, data.Shrinks)
+    | _ -> failwith "impossible"
+
+[<Properties(Shrinks = 0<shrinks>)>]
+module ``Module with <Properties> tests, 0 shrinks manual`` =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+
+  [<Property(Skip = skipReason)>]
+  let ``0 shrinks, skipped`` i =
+    i < 2500
+  [<Fact>]
+  let ``0 shrinks`` () =
+    let _, _, shrinks = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(Some 0<shrinks>, shrinks)
+
+  [<Property(Shrinks = 1<shrinks>, Skip = skipReason)>]
+  let ``1 shrinks, run, skipped`` i =
+    i < 2500
+  [<Fact>]
+  let ``1 shrinks, run`` () =
+    let report = InternalLogic.report (nameof ``1 shrinks, run, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    match report.Status with
+    | Failed data ->
+      Assert.Equal(1<shrinks>, data.Shrinks)
+    | _ -> failwith "impossible"
+
+[<Properties(100<tests>, 0<shrinks>)>]
+module ``Module with <Properties> tests, whatever tests and 0 shrinks`` =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+
+  [<Property(Skip = skipReason)>]
+  let ``0 shrinks, skipped`` i =
+    i < 2500
+  [<Fact>]
+  let ``0 shrinks`` () =
+    let _, _, shrinks = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
+    Assert.Equal(Some 0<shrinks>, shrinks)
+
+  [<Property(Shrinks = 1<shrinks>, Skip = skipReason)>]
+  let ``1 shrinks, run, skipped`` i =
+    i < 2500
+  [<Fact>]
+  let ``1 shrinks, run`` () =
+    let report = InternalLogic.report (nameof ``1 shrinks, run, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    match report.Status with
+    | Failed data ->
+      Assert.Equal(1<shrinks>, data.Shrinks)
+    | _ -> failwith "impossible"
