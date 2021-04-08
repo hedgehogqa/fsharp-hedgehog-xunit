@@ -30,13 +30,23 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
     | Some x -> x.GetAutoGenConfig, x.GetTests, x.GetShrinks
     | None   -> None              , None      , None
   let configType, tests, shrinks =
-    testMethod.GetCustomAttributes(typeof<PropertyAttribute>)
+    typeof<PropertyAttribute>
+    |> testMethod.GetCustomAttributes
     |> Seq.exactlyOne
     :?> PropertyAttribute
     |> fun methodAttribute ->
       methodAttribute.GetAutoGenConfig ++ classAutoGenConfig,
       methodAttribute.GetTests         ++ classTests,
       methodAttribute.GetShrinks       ++ classShrinks
+  let recheck =
+    typeof<RecheckAttribute>
+    |> testMethod.GetCustomAttributes
+    |> Seq.tryExactlyOne
+    |> Option.map (fun x ->
+      x
+      :?> RecheckAttribute
+      |> fun x -> x.GetSize, { Value = x.GetValue; Gamma = x.GetGamma }
+    )
   let config =
     match configType with
     | None -> GenX.defaults
@@ -55,7 +65,7 @@ type {t.Name} =
     GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 "       |> fun x -> x.GetMethod.Invoke(null, [||])
       :?> AutoGenConfig
-  config, tests, shrinks
+  config, tests, shrinks, recheck
 
 let resultIsOk r =
   match r with
@@ -111,7 +121,7 @@ let withShrinks = function
 let report (testMethod:MethodInfo) testClass testClassInstance =
   if testMethod.ReturnParameter.ParameterType.ContainsGenericParameters then
     invalidOp $"The return type '{testMethod.ReturnParameter.ParameterType.Name}' is generic, which is unsupported. Consider using a type annotation to make the return type concrete."
-  let config, tests, shrinks = parseAttributes testMethod testClass
+  let config, tests, shrinks, recheck = parseAttributes testMethod testClass
   let gens =
     testMethod.GetParameters()
     |> Array.mapi (fun i p ->
@@ -133,4 +143,7 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
     PropertyConfig.defaultConfig
     |> withTests tests
     |> withShrinks shrinks
-  Property.forAll invoke gens |> Property.reportWith config
+  Property.forAll invoke gens
+  |> match recheck with
+     | Some (size, seed) -> Property.reportRecheckWith size seed config
+     | None              -> Property.reportWith config

@@ -170,6 +170,17 @@ module ``Module with <Properties> tests`` =
     i = 2718
 ```
 
+### `Recheck` attribute
+
+This optional method attribute invokes `Property.recheck` with the given `Size` and `Seed`. It must be used with `Property`.
+
+```f#
+[<Property(1<tests>)>]
+[<RecheckAttribute(57, 16596517232889608208UL, 14761040450692577973UL)>]
+let ``this passes`` i =
+  i = 123456
+```
+
 ## Tips
 
 Use named arguments to select the desired constructor overload.

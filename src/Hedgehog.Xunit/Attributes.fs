@@ -79,3 +79,16 @@ type PropertiesAttribute(autoGenConfig, tests, shrinks) =
   member internal _.GetAutoGenConfig            = _autoGenConfig
   member internal _.GetTests                    = _tests
   member internal _.GetShrinks                  = _shrinks
+
+/// Runs Property.reportRecheck
+[<AttributeUsage(AttributeTargets.Method ||| AttributeTargets.Property, AllowMultiple = false)>]
+type RecheckAttribute(size, value, gamma) =
+  inherit Attribute()
+
+  let _size  : int    = size
+  let _value : uint64 = value
+  let _gamma : uint64 = gamma
+
+  member internal _.GetSize  = _size
+  member internal _.GetValue = _value
+  member internal _.GetGamma = _gamma
