@@ -43,7 +43,7 @@ let ``Reversing a list twice yields the original list, with Hedgehog.Xunit`` (xs
 
 ## Documentation
 
-`Hedgehog.Xunit` provides the `Property` attribute and the `Properties` attribute.
+`Hedgehog.Xunit` provides the `Property`, `Properties`, and `Recheck` attributes.
 
 ### `Property` attribute
 
@@ -170,7 +170,7 @@ let ``This test is skipped`` () =
 
 ### `Properties` attribute
 
-This optional attribute can decorate modules or classes. It sets default arguments for `AutoGenConfig` and `Tests`. These will be overridden by any arguments provided by the `Property` attribute.
+This optional attribute can decorate modules or classes. It sets default arguments for `AutoGenConfig`, `Tests`, `Shrinks`, and `Size`. These will be overridden by any arguments provided by the `Property` attribute.
 
 ```f#
 type Int13   = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
