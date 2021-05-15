@@ -92,7 +92,7 @@ module ``Property module tests`` =
   let ``runs with 13 once`` () = ()
   [<Fact>]
   let ``Tests 'runs with 13 once'`` () =
-    let config, tests, shrinks, _ = InternalLogic.parseAttributes (nameof ``runs with 13 once`` |> getMethod) typeof<Marker>.DeclaringType
+    let config, tests, shrinks, _, _ = InternalLogic.parseAttributes (nameof ``runs with 13 once`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(None, shrinks)
     Assert.Equal(Some 1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
@@ -233,7 +233,7 @@ module ``Module with <Properties> tests`` =
   [<Fact>]
   let ``Module <Properties> tests (count) works`` () =
     let testMethod = getMethod (nameof ``Module <Properties> works``)
-    let _, tests, _, _ = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
+    let _, tests, _, _, _ = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
     Assert.Equal(Some 200<tests>, tests)
 
   [<Property(300<tests>)>]
@@ -241,7 +241,7 @@ module ``Module with <Properties> tests`` =
   [<Fact>]
   let ``Module <Properties> tests (count) is overriden by Method <Property>`` () =
     let testMethod = getMethod (nameof ``Module <Properties> tests (count) is overriden by Method <Property>, skipped``)
-    let _, tests, _, _ = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
+    let _, tests, _, _, _ = InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType
     Assert.Equal(Some 300<tests>, tests)
 
 
@@ -280,7 +280,7 @@ module ``Properties named arg tests`` =
   let ``runs once with 13`` () = ()
   [<Fact>]
   let ``Tests 'runs once with 13'`` () =
-    let config, tests, _, _ = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
+    let config, tests, _, _, _ = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(Some 1<tests>, tests)
     let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
     Assert.Equal(13, generated)
@@ -294,7 +294,7 @@ module ``Properties (tests count) tests`` =
   let ``runs once`` () = ()
   [<Fact>]
   let ``Tests 'runs once'`` () =
-    let _, tests, _, _ = InternalLogic.parseAttributes (nameof ``runs once`` |> getMethod) typeof<Marker>.DeclaringType
+    let _, tests, _, _, _ = InternalLogic.parseAttributes (nameof ``runs once`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(Some 1<tests>, tests)
 
 
@@ -432,7 +432,7 @@ module ShrinkTests =
     i < 2500
   [<Fact>]
   let ``0 shrinks`` () =
-    let _, _, shrinks, _ = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
+    let _, _, shrinks, _, _ = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(Some 0<shrinks>, shrinks)
 
   [<Property(Shrinks = 1<shrinks>, Skip = skipReason)>]
@@ -468,7 +468,7 @@ module ``Module with <Properties> tests, 0 shrinks`` =
     i < 2500
   [<Fact>]
   let ``0 shrinks`` () =
-    let _, _, shrinks, _ = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
+    let _, _, shrinks, _, _ = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(Some 0<shrinks>, shrinks)
 
   [<Property(Shrinks = 1<shrinks>, Skip = skipReason)>]
@@ -492,7 +492,7 @@ module ``Module with <Properties> tests, 0 shrinks manual`` =
     i < 2500
   [<Fact>]
   let ``0 shrinks`` () =
-    let _, _, shrinks, _ = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
+    let _, _, shrinks, _, _ = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(Some 0<shrinks>, shrinks)
 
   [<Property(Shrinks = 1<shrinks>, Skip = skipReason)>]
@@ -516,7 +516,7 @@ module ``Module with <Properties> tests, whatever tests and 0 shrinks`` =
     i < 2500
   [<Fact>]
   let ``0 shrinks`` () =
-    let _, _, shrinks, _ = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
+    let _, _, shrinks, _, _ = InternalLogic.parseAttributes (nameof ``0 shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(Some 0<shrinks>, shrinks)
 
   [<Property(Shrinks = 1<shrinks>, Skip = skipReason)>]
@@ -539,9 +539,34 @@ module RecheckTests =
   let ``recheck actual`` () = ()
   [<Fact>]
   let ``recheck`` () =
-    let _, _, _, recheck = InternalLogic.parseAttributes (nameof ``recheck actual`` |> getMethod) typeof<Marker>.DeclaringType
+    let _, _, _, recheck, _ = InternalLogic.parseAttributes (nameof ``recheck actual`` |> getMethod) typeof<Marker>.DeclaringType
     match recheck with
     | None -> failwith "impossible"
     | Some (size, seed) ->
       Assert.Equal(1, size)
       Assert.Equal({Value=2UL; Gamma=3UL}, seed)
+
+[<Properties(Size=1)>]
+module SizeTests =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+
+  [<Property(Size = 2)>]
+  let ``property size, actual`` () = ()
+  [<Fact>]
+  let ``property size`` () =
+    let _, _, _, _, size = InternalLogic.parseAttributes (nameof ``property size, actual`` |> getMethod) typeof<Marker>.DeclaringType
+    match size with
+    | None -> failwith "impossible"
+    | Some size ->
+      Assert.Equal(2, size)
+
+  [<Property>]
+  let ``properites size, actual`` () = ()
+  [<Fact>]
+  let ``properites size`` () =
+    let _, _, _, _, size = InternalLogic.parseAttributes (nameof ``properites size, actual`` |> getMethod) typeof<Marker>.DeclaringType
+    match size with
+    | None -> failwith "impossible"
+    | Some size ->
+      Assert.Equal(1, size)

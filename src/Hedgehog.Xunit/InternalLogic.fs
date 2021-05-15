@@ -22,22 +22,23 @@ let private genxAutoBoxWithMethodInfo =
   typeof<Marker>.DeclaringType.GetTypeInfo().GetDeclaredMethod(nameof genxAutoBoxWith)
 
 let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
-  let classAutoGenConfig, classTests, classShrinks =
+  let classAutoGenConfig, classTests, classShrinks, classSize =
     testClass.GetCustomAttributes(typeof<PropertiesAttribute>)
     |> Seq.tryExactlyOne
     |> Option.map (fun x -> x :?> PropertiesAttribute)
     |> function
-    | Some x -> x.GetAutoGenConfig, x.GetTests, x.GetShrinks
-    | None   -> None              , None      , None
-  let configType, tests, shrinks =
+    | Some x -> x.GetAutoGenConfig, x.GetTests, x.GetShrinks, x.GetSize
+    | None   -> None              , None      , None        , None
+  let configType, tests, shrinks, size =
     typeof<PropertyAttribute>
     |> testMethod.GetCustomAttributes
     |> Seq.exactlyOne
     :?> PropertyAttribute
     |> fun methodAttribute ->
       methodAttribute.GetAutoGenConfig ++ classAutoGenConfig,
-      methodAttribute.GetTests         ++ classTests,
-      methodAttribute.GetShrinks       ++ classShrinks
+      methodAttribute.GetTests         ++ classTests        ,
+      methodAttribute.GetShrinks       ++ classShrinks      ,
+      methodAttribute.GetSize          ++ classSize
   let recheck =
     typeof<RecheckAttribute>
     |> testMethod.GetCustomAttributes
@@ -65,7 +66,7 @@ type {t.Name} =
     GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 "       |> fun x -> x.GetMethod.Invoke(null, [||])
       :?> AutoGenConfig
-  config, tests, shrinks, recheck
+  config, tests, shrinks, recheck, size
 
 let resultIsOk r =
   match r with
@@ -121,7 +122,7 @@ let withShrinks = function
 let report (testMethod:MethodInfo) testClass testClassInstance =
   if testMethod.ReturnParameter.ParameterType.ContainsGenericParameters then
     invalidOp $"The return type '{testMethod.ReturnParameter.ParameterType.Name}' is generic, which is unsupported. Consider using a type annotation to make the return type concrete."
-  let config, tests, shrinks, recheck = parseAttributes testMethod testClass
+  let config, tests, shrinks, recheck, size = parseAttributes testMethod testClass
   let gens =
     testMethod.GetParameters()
     |> Array.mapi (fun i p ->
@@ -133,6 +134,10 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
       :?> Gen<obj>)
     |> List.ofArray
     |> ListGen.sequence
+  let gens =
+    match size with
+    | Some size -> gens |> Gen.resize size
+    | None      -> gens
   let invoke args =
     try
       testMethod.Invoke(testClassInstance, args |> Array.ofList)
