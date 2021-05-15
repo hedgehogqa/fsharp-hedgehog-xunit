@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.2.1 (2021-05-15)
+
+* Added `Shrinks` and `Size` to `PropertyAttribute` and `PropertiesAttribute`
+* Added RecheckAttribute
+
 ### 0.2.0 (2021-02-07)
 
 * Updated to Hedgehog.Experimental 0.4.0

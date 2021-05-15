@@ -108,7 +108,7 @@ Hedgehog.FailedException: *** Failed! Falsifiable (after 13 tests and 2 shrinks)
 
 Tests returning `Async<Result<_,_>>` or `Task<Result<_,_>>` are run synchronously and are expected to be in the `Ok` state.
 
-The `Property` attribute's constructor may take 3 arguments: `AutoGenConfig`, `Tests` (count), and `Skip` (reason).
+The `Property` attribute's constructor may take 5 arguments: `AutoGenConfig`, `Tests` (count), `Shrinks` (count), `Size`, and `Skip` (reason).
 
 #### `AutoGenConfig`
 
@@ -128,14 +128,32 @@ let ``This test passes`` (i: int) =
 
 #### `Tests` (count)
 
-* Default: `100<tests>`
-
 Specifies the number of tests to be run, though more or less may occur due to shrinking or early failure.
 
 ```f#
 [<Property(3<tests>)>]
 let ``This runs 3 times`` () =
   ()
+```
+
+#### `Shrinks` (count)
+
+Specifies the maximal number of shrinks that may run.
+
+```f#
+[<Property(Shrinks = 0<shrinks>)>]
+let ``No shrinks occur`` i =
+  if i > 50 then failwith "oops"
+```
+
+#### `Size`
+
+Sets the `Size` to a value for all runs.
+
+```f#
+[<Property(Size = 2)>]
+let ``"i" mostly ranges between -1 and 1`` i =
+  printfn "%i" i
 ```
 
 #### `Skip` (reason)
