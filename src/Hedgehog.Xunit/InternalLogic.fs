@@ -145,9 +145,10 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
     |> List.ofArray
     |> ListGen.sequence
   let gens =
-    match size with
-    | Some size -> gens |> Gen.resize size
-    | None      -> gens
+    match  size, recheck with
+    | _        , Some(size, _)
+    | Some size,            _ -> gens |> Gen.resize size
+    | None     ,            _ -> gens
   let invoke args =
     try
       ( if testMethod.ContainsGenericParameters then

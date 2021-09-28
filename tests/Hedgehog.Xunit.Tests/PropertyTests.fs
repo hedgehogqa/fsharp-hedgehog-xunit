@@ -556,7 +556,7 @@ module RecheckTests =
   let getMethod = typeof<Marker>.DeclaringType.GetMethod
 
   [<Property>]
-  [<RecheckAttribute(1, 2UL, 3UL)>]
+  [<Recheck(size = 1, value = 2UL, gamma = 3UL)>]
   let ``recheck actual`` () = ()
   [<Fact>]
   let ``recheck`` () =
@@ -566,6 +566,12 @@ module RecheckTests =
     | Some (size, seed) ->
       Assert.Equal(1, size)
       Assert.Equal({Value=2UL; Gamma=3UL}, seed)
+
+  [<Recheck(size = 57, value = 16596517232889608208UL, gamma = 14761040450692577973UL)>]
+  let [<Property(1<tests>, Size = 1)>] ``Recheck's Size overrides Property's Size``   i = i = 123456
+
+  [<Recheck(       57,         16596517232889608208UL,         14761040450692577973UL)>]
+  let [<Property(1<tests>          )>] ``Makes sure that param order doesn't change`` i = i = 123456
 
 [<Properties(Size=1)>]
 module SizeTests =

@@ -4,6 +4,7 @@
 
 * Tests decorated with `PropertyAttribute` may have generics in their parameter types and return types.
 * Added `AutoGenConfigArgs`
+* `RecheckAttribute`'s `Size` overrides `PropertyAttribute`'s `Size`
 
 ### 0.2.1 (2021-05-15)
 
