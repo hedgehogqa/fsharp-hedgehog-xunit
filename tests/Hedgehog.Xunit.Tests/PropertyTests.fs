@@ -597,3 +597,21 @@ module SizeTests =
     | None -> failwith "impossible"
     | Some size ->
       Assert.Equal(1, size)
+
+module ``tryRaise tests`` =
+  type private Marker = class end
+  let getMethod = typeof<Marker>.DeclaringType.GetMethod
+
+  [<Property(Skip = skipReason)>]
+  [<Recheck(size = 1, value = 2UL, gamma = 3UL)>]
+  let ``always fails, skipped`` () = false
+  [<Fact>]
+  let ``always fails`` () =
+    let report = InternalLogic.report (nameof ``always fails, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
+    Assert.Equal("""*** Failed! Falsifiable (after 1 test):
+[]
+
+This failure can be reproduced using:
+[<Recheck(size = 1, value = 2UL, gamma = 3UL)>]
+""", actual.Message, ignoreLineEndingDifferences = true)

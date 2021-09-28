@@ -9,7 +9,7 @@ type PropertyTestInvoker  (test, messageBus, testClass, constructorArguments, te
   
   override this.CallTestMethod testClassInstance =
     InternalLogic.report this.TestMethod this.TestClass testClassInstance
-    |> Report.tryRaise
+    |> InternalLogic.tryRaise
     null
   
 type PropertyTestRunner  (test, messageBus, testClass, constructorArguments, testMethod, testMethodArguments, skipReason, beforeAfterAttributes, aggregator, cancellationTokenSource) =
