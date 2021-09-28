@@ -120,18 +120,17 @@ let withShrinks = function
   | None -> PropertyConfig.withoutShrinks
 
 let report (testMethod:MethodInfo) testClass testClassInstance =
-  if testMethod.ReturnParameter.ParameterType.ContainsGenericParameters then
-    invalidOp $"The return type '{testMethod.ReturnParameter.ParameterType.Name}' is generic, which is unsupported. Consider using a type annotation to make the return type concrete."
   let config, tests, shrinks, recheck, size = parseAttributes testMethod testClass
   let gens =
     testMethod.GetParameters()
     |> Array.mapi (fun i p ->
       if p.ParameterType.ContainsGenericParameters then
-        invalidArg p.Name $"The parameter type '{p.ParameterType.Name}' at index {i} is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete."
-      genxAutoBoxWithMethodInfo
-        .MakeGenericMethod(p.ParameterType)
-        .Invoke(null, [|config|])
-      :?> Gen<obj>)
+        Gen.constant Unchecked.defaultof<_>
+      else
+        genxAutoBoxWithMethodInfo
+          .MakeGenericMethod(p.ParameterType)
+          .Invoke(null, [|config|])
+        :?> Gen<obj>)
     |> List.ofArray
     |> ListGen.sequence
   let gens =
@@ -140,7 +139,14 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
     | None      -> gens
   let invoke args =
     try
-      testMethod.Invoke(testClassInstance, args |> Array.ofList)
+      ( if testMethod.ContainsGenericParameters then
+          Array.create
+            (testMethod.GetGenericArguments().Length)
+            (typeof<obj>)
+          |> fun x -> testMethod.MakeGenericMethod x
+        else
+          testMethod
+      ) |> fun x -> x.Invoke(testClassInstance, args |> Array.ofList)
       |> toProperty
     finally
       List.iter dispose args

@@ -130,30 +130,29 @@ module ``Property module tests`` =
     printfn "%A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A %A "
       a b c d e f g h i j k l m n o p q r s t u v w x y z
 
-  [<Property(Skip = skipReason)>]
-  let ``unresolved generics fail, skipped`` _ = ()
-  [<Fact>]
-  let ``unresolved generics fail`` () =
-    let e = Assert.Throws<ArgumentException>(fun () -> InternalLogic.report (getMethod (nameof ``unresolved generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
-    Assert.Equal("The parameter type 'a' at index 0 is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete. (Parameter '_arg1')", e.Message)
-
-  [<Property(Skip = skipReason)>]
-  let ``unresolved nested generics fail, skipped`` (_: _ list) = ()
-  [<Fact>]
-  let ``unresolved nested generics fail`` () =
-    let e = Assert.Throws<ArgumentException>(fun () -> InternalLogic.report (getMethod (nameof ``unresolved nested generics fail, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
-    Assert.Equal("The parameter type 'FSharpList`1' at index 0 is generic, which is unsupported. Consider using a type annotation to make the parameter's type concrete. (Parameter '_arg1')", e.Message)
-
-  [<Property(Skip = skipReason)>]
-  let ``returning unresolved nested generic fails, skipped`` () : Result<unit, 'a> = Ok ()
-  [<Fact>]
-  let ``returning unresolved nested generic fails`` () =
-    let e = Assert.Throws<InvalidOperationException>(fun () -> InternalLogic.report (getMethod (nameof ``returning unresolved nested generic fails, skipped``)) typeof<Marker>.DeclaringType null |> ignore)
-    Assert.Equal("The return type 'FSharpResult`2' is generic, which is unsupported. Consider using a type annotation to make the return type concrete.", e.Message)
+  [<Property>]
+  let ``multiple unresolved generics works`` _ _ = ()
 
   [<Property>]
-  let ``0 parameters passes`` () =
-    ()
+  let ``mixed unresolved generics works 1`` (_: int) _ = ()
+
+  [<Property>]
+  let ``mixed unresolved generics works 2`` _ (_: int) = ()
+
+  [<Property>]
+  let ``unresolved nested generics works`` (_: _ list) (_: Result<_, _>) = ()
+
+  [<Property>]
+  let ``mixed nested generics works`` (_: int) _ (_: _ list) (_: Result<_, _>) = ()
+
+  [<Property>]
+  let ``returning unresolved generic works`` (x: 'a) = x
+
+  [<Property>]
+  let ``returning unresolved nested generic works`` () : Result<unit, 'a> = Ok ()
+
+  [<Property>]
+  let ``0 parameters passes`` () = ()
 
 
 type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
