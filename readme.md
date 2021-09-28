@@ -108,13 +108,13 @@ Hedgehog.FailedException: *** Failed! Falsifiable (after 13 tests and 2 shrinks)
 
 Tests returning `Async<Result<_,_>>` or `Task<Result<_,_>>` are run synchronously and are expected to be in the `Ok` state.
 
-The `Property` attribute's constructor may take 5 arguments: `AutoGenConfig`, `Tests` (count), `Shrinks` (count), `Size`, and `Skip` (reason).
+The `Property` attribute's constructor may take several arguments: `AutoGenConfig`, `AutoGenConfigArgs`, `Tests` (count), `Shrinks` (count), and `Size`. Since the `Property` attribute extends `Xunit.FactAttribute`, it may also take `DisplayName`, `Skip`, and `Timeout`.
 
-#### `AutoGenConfig`
+#### `AutoGenConfig` and `AutoGenConfigArgs`
 
 * Default: `GenX.defaults`
 
-Create a class with a single static property that returns an instance of `AutoGenConfig`. Then provide the type of this class as an argument to the `Property` attribute. This works around the constraint that [`Attribute` parameters must be a constant.](https://stackoverflow.com/a/33007272)
+Create a class with a single static property or method that returns an instance of `AutoGenConfig`. Then provide the type of this class as an argument to the `Property` attribute. This works around the constraint that [`Attribute` parameters must be a constant.](https://stackoverflow.com/a/33007272)
 
 ```f#
 type AutoGenConfigContainer =
@@ -124,6 +124,20 @@ type AutoGenConfigContainer =
 [<Property(typeof<AutoGenConfigContainer>)>]
 let ``This test passes`` (i: int) =
   i = 13
+```
+
+If the method takes arguments, you must provide them using `AutoGenConfigArgs`.
+
+```f#
+type ConfigWithArgs =
+  static member __ a b =
+    GenX.defaults
+    |> AutoGenConfig.addGenerator (Gen.constant a)
+    |> AutoGenConfig.addGenerator (Gen.constant b)
+
+[<Property(AutoGenConfig = typeof<ConfigWithArgs>, AutoGenConfigArgs = [|"foo"; 13|])>]
+let ``This also passes`` s i =
+  s = "foo" && i = 13
 ```
 
 #### `Tests` (count)
@@ -156,21 +170,9 @@ let ``"i" mostly ranges between -1 and 1`` i =
   printfn "%i" i
 ```
 
-#### `Skip` (reason)
-
-* Default: `null`
-
-This is the same as the [`Skip` on `[<Fact>]`](https://github.com/xunit/xunit/blob/v2/src/xunit.core/FactAttribute.cs).
-
-```f#
-[<Property("because the docs should have an example")>]
-let ``This test is skipped`` () =
-  ()
-```
-
 ### `Properties` attribute
 
-This optional attribute can decorate modules or classes. It sets default arguments for `AutoGenConfig`, `Tests`, `Shrinks`, and `Size`. These will be overridden by any arguments provided by the `Property` attribute.
+This optional attribute can decorate modules or classes. It sets default arguments for `AutoGenConfig`, `AutoGenConfigArgs`, `Tests`, `Shrinks`, and `Size`. These will be overridden by any arguments provided by the `Property` attribute.
 
 ```f#
 type Int13   = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)

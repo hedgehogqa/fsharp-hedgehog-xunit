@@ -22,23 +22,24 @@ let private genxAutoBoxWithMethodInfo =
   typeof<Marker>.DeclaringType.GetTypeInfo().GetDeclaredMethod(nameof genxAutoBoxWith)
 
 let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
-  let classAutoGenConfig, classTests, classShrinks, classSize =
+  let classAutoGenConfig, classAutoGenConfigArgs, classTests, classShrinks, classSize =
     testClass.GetCustomAttributes(typeof<PropertiesAttribute>)
     |> Seq.tryExactlyOne
     |> Option.map (fun x -> x :?> PropertiesAttribute)
     |> function
-    | Some x -> x.GetAutoGenConfig, x.GetTests, x.GetShrinks, x.GetSize
-    | None   -> None              , None      , None        , None
-  let configType, tests, shrinks, size =
+    | Some x -> x.GetAutoGenConfig, x.GetAutoGenConfigArgs, x.GetTests, x.GetShrinks, x.GetSize
+    | None   -> None              , None                  , None      , None        , None
+  let configType, configArgs, tests, shrinks, size =
     typeof<PropertyAttribute>
     |> testMethod.GetCustomAttributes
     |> Seq.exactlyOne
     :?> PropertyAttribute
     |> fun methodAttribute ->
-      methodAttribute.GetAutoGenConfig ++ classAutoGenConfig,
-      methodAttribute.GetTests         ++ classTests        ,
-      methodAttribute.GetShrinks       ++ classShrinks      ,
-      methodAttribute.GetSize          ++ classSize
+      methodAttribute.GetAutoGenConfig     ++ classAutoGenConfig                                ,
+      methodAttribute.GetAutoGenConfigArgs ++ classAutoGenConfigArgs |> Option.defaultValue [||],
+      methodAttribute.GetTests             ++ classTests                                        ,
+      methodAttribute.GetShrinks           ++ classShrinks                                      ,
+      methodAttribute.GetSize              ++ classSize
   let recheck =
     typeof<RecheckAttribute>
     |> testMethod.GetCustomAttributes
@@ -52,10 +53,10 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
     match configType with
     | None -> GenX.defaults
     | Some t ->
-      t.GetProperties()
+      t.GetMethods()
       |> Seq.filter (fun p ->
-        p.GetMethod.IsStatic &&
-        p.GetMethod.ReturnType = typeof<AutoGenConfig>
+        p.IsStatic &&
+        p.ReturnType = typeof<AutoGenConfig>
       ) |> Seq.tryExactlyOne
       |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof AutoGenConfig}.
 
@@ -64,7 +65,17 @@ An example type definition:
 type {t.Name} =
   static member __ =
     GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
-"       |> fun x -> x.GetMethod.Invoke(null, [||])
+"       |> fun methodInfo ->
+        let methodInfo =
+          if methodInfo.IsGenericMethod then
+            methodInfo.GetParameters()
+            |> Array.map (fun p -> p.ParameterType.IsGenericParameter)
+            |> Array.zip configArgs
+            |> Array.filter snd
+            |> Array.map (fun (arg, _) -> arg.GetType())
+            |> fun argTypes -> methodInfo.MakeGenericMethod argTypes
+          else methodInfo
+        methodInfo.Invoke(null, configArgs)
       :?> AutoGenConfig
   config, tests, shrinks, recheck, size
 

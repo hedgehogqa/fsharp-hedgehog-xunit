@@ -3,11 +3,12 @@
 ### 0.3.0
 
 * Tests decorated with `PropertyAttribute` may have generics in their parameter types and return types.
+* Added `AutoGenConfigArgs`
 
 ### 0.2.1 (2021-05-15)
 
 * Added `Shrinks` and `Size` to `PropertyAttribute` and `PropertiesAttribute`
-* Added RecheckAttribute
+* Added `RecheckAttribute`
 
 ### 0.2.0 (2021-02-07)
 

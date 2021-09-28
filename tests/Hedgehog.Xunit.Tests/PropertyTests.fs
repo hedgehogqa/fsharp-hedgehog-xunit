@@ -169,6 +169,28 @@ type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
   let ``Can generate an int and string`` (i: int, s: string) =
     sprintf "Test input: %i, %s" i s |> output.WriteLine
 
+type ConfigArg = static member __ a = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant a)
+
+[<Properties(AutoGenConfig = typeof<ConfigArg>, AutoGenConfigArgs = [|'a'|])>]
+module ``AutoGenConfigArgs tests`` =
+
+  let [<Property>] ``PropertiesAttribute passes its AutoGenConfigArgs`` a = a = 'a'
+
+  let config a b =
+    GenX.defaults
+    |> AutoGenConfig.addGenerator (Gen.constant a)
+    |> AutoGenConfig.addGenerator (Gen.constant b)
+  type ConfigGenericArgs = static member __ (a: 'a)     (b: 'b)  = config a b
+  type ConfigArgs        = static member __ (a: string) (b: int) = config a b
+  type ConfigMixedArgsA  = static member __ (a: 'a)     (b: int) = config a b
+  type ConfigMixedArgsB  = static member __ (a: string) (b: 'b)  = config a b
+
+  let test s i = s = "foo" && i = 13
+  let [<Property(AutoGenConfig = typeof<ConfigGenericArgs>, AutoGenConfigArgs = [|"foo"; 13|])>] ``all generics``      s i = test s i
+  let [<Property(AutoGenConfig = typeof<ConfigArgs>       , AutoGenConfigArgs = [|"foo"; 13|])>] ``all non-generics``  s i = test s i
+  let [<Property(AutoGenConfig = typeof<ConfigMixedArgsA> , AutoGenConfigArgs = [|"foo"; 13|])>] ``mixed generics, 1`` s i = test s i
+  let [<Property(AutoGenConfig = typeof<ConfigMixedArgsB> , AutoGenConfigArgs = [|"foo"; 13|])>] ``mixed generics, 2`` s i = test s i
+
 module ``Property module with AutoGenConfig tests`` =
 
   module NormalTests =
