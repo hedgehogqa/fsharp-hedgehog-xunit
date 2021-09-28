@@ -27,7 +27,7 @@ Docs at https://github.com/dharmaturtle/fsharp-hedgehog-xunit
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hedgehog.Experimental" Version="0.4.0" />
+    <PackageReference Include="Hedgehog.Experimental" Version="0.5.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.abstractions" Version="2.0.3" />
   </ItemGroup>
@@ -39,7 +39,7 @@ Docs at https://github.com/dharmaturtle/fsharp-hedgehog-xunit
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="5.0.0" />
+    <PackageReference Update="FSharp.Core" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
