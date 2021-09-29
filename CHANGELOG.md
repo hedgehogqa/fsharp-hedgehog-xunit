@@ -1,11 +1,12 @@
 # Changelog
 
-### 0.3.0
+### 0.3.0 (2021-09-29)
 
 * Tests decorated with `PropertyAttribute` may have generics in their parameter types and return types.
 * Added `AutoGenConfigArgs`
 * `RecheckAttribute`'s `Size` overrides `PropertyAttribute`'s `Size`
 * If a test fails, a `RecheckAttribute` is appended to the the Exception message for easy copy/pasting
+* Updated to Hedgehog.Experimental 0.5.0
 
 ### 0.2.1 (2021-05-15)
 
