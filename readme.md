@@ -196,7 +196,7 @@ This optional method attribute invokes `Property.recheck` with the given `Size` 
 
 ```f#
 [<Property(1<tests>)>]
-[<Recheck(size = 57, value = 16596517232889608208UL, gamma = 14761040450692577973UL)>]
+[<Recheck(size = 57, value = 18393374508668658328UL, gamma = 2784551999710862749UL)>]
 let ``this passes`` i =
   i = 123456
 ```

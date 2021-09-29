@@ -95,7 +95,7 @@ module ``Property module tests`` =
     let config, tests, shrinks, _, _ = InternalLogic.parseAttributes (nameof ``runs with 13 once`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(None, shrinks)
     Assert.Equal(Some 1<tests>, tests)
-    let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
+    let generated = GenX.autoWith config |> Gen.sample 1 1 |> Seq.exactlyOne
     Assert.Equal(13, generated)
 
   type CustomRecord = { Herp: int; Derp: string }
@@ -303,7 +303,7 @@ module ``Properties named arg tests`` =
   let ``Tests 'runs once with 13'`` () =
     let config, tests, _, _, _ = InternalLogic.parseAttributes (nameof ``runs once with 13`` |> getMethod) typeof<Marker>.DeclaringType
     Assert.Equal(Some 1<tests>, tests)
-    let generated = GenX.autoWith config |> Gen.sample 1 1 |> List.exactlyOne
+    let generated = GenX.autoWith config |> Gen.sample 1 1 |> Seq.exactlyOne
     Assert.Equal(13, generated)
 
 
@@ -567,10 +567,10 @@ module RecheckTests =
       Assert.Equal(1, size)
       Assert.Equal({Value=2UL; Gamma=3UL}, seed)
 
-  [<Recheck(size = 57, value = 16596517232889608208UL, gamma = 14761040450692577973UL)>]
+  [<Recheck(size = 57, value = 18393374508668658328UL, gamma = 2784551999710862749UL)>]
   let [<Property(1<tests>, Size = 1)>] ``Recheck's Size overrides Property's Size``   i = i = 123456
 
-  [<Recheck(       57,         16596517232889608208UL,         14761040450692577973UL)>]
+  [<Recheck(       57,         18393374508668658328UL,         2784551999710862749UL)>]
   let [<Property(1<tests>          )>] ``Makes sure that param order doesn't change`` i = i = 123456
 
 [<Properties(Size=1)>]
@@ -611,7 +611,6 @@ module ``tryRaise tests`` =
     let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
     Assert.Equal("""*** Failed! Falsifiable (after 1 test):
 []
-
 This failure can be reproduced using:
 [<Recheck(size = 1, value = 2UL, gamma = 3UL)>]
 """, actual.Message, ignoreLineEndingDifferences = true)
