@@ -555,23 +555,17 @@ module RecheckTests =
   type private Marker = class end
   let getMethod = typeof<Marker>.DeclaringType.GetMethod
 
-  [<Property>]
-  [<Recheck(size = 1, value = 2UL, gamma = 3UL)>]
-  let ``recheck actual`` () = ()
+  let [<Literal>] expectedRecheckData = "0_16700074754810023652_2867022503662193831_"
+  [<Property(Skip = skipReason)>]
+  [<Recheck(expectedRecheckData)>]
+  let ``recheck, skipped`` () = ()
   [<Fact>]
   let ``recheck`` () =
-    let _, _, _, recheck, _ = InternalLogic.parseAttributes (nameof ``recheck actual`` |> getMethod) typeof<Marker>.DeclaringType
+    let _, _, _, recheck, _ = InternalLogic.parseAttributes (nameof ``recheck, skipped`` |> getMethod) typeof<Marker>.DeclaringType
     match recheck with
     | None -> failwith "impossible"
-    | Some (size, seed) ->
-      Assert.Equal(1, size)
-      Assert.Equal({Value=2UL; Gamma=3UL}, seed)
-
-  [<Recheck(size = 57, value = 18393374508668658328UL, gamma = 2784551999710862749UL)>]
-  let [<Property(1<tests>, Size = 1)>] ``Recheck's Size overrides Property's Size``   i = i = 123456
-
-  [<Recheck(       57,         18393374508668658328UL,         2784551999710862749UL)>]
-  let [<Property(1<tests>          )>] ``Makes sure that param order doesn't change`` i = i = 123456
+    | Some actualRecheckData ->
+      Assert.Equal(expectedRecheckData, actualRecheckData)
 
 [<Properties(Size=1)>]
 module SizeTests =
@@ -603,14 +597,13 @@ module ``tryRaise tests`` =
   let getMethod = typeof<Marker>.DeclaringType.GetMethod
 
   [<Property(Skip = skipReason)>]
-  [<Recheck(size = 1, value = 2UL, gamma = 3UL)>]
   let ``always fails, skipped`` () = false
   [<Fact>]
   let ``always fails`` () =
     let report = InternalLogic.report (nameof ``always fails, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
     let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
-    Assert.Equal("""*** Failed! Falsifiable (after 1 test):
+    let expectedMessage = """*** Failed! Falsifiable (after 1 test):
 []
-This failure can be reproduced using:
-[<Recheck(size = 1, value = 2UL, gamma = 3UL)>]
-""", actual.Message, ignoreLineEndingDifferences = true)
+This failure can be reproduced by running:
+> Property.recheck "0_"""
+    actual.Message.StartsWith(expectedMessage) |> Assert.True

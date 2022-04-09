@@ -47,7 +47,7 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
     |> Option.map (fun x ->
       x
       :?> RecheckAttribute
-      |> fun x -> x.GetSize, { Value = x.GetValue; Gamma = x.GetGamma }
+      |> fun x -> x.GetRecheckData
     )
   let config =
     match configType with
@@ -168,15 +168,10 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
     |> withShrinks shrinks
   Property.forAll invoke gens
   |> match recheck with
-     | Some (size, seed) -> Property.reportRecheckWith size seed config
-     | None              -> Property.reportWith config
+     | Some recheckData -> Property.reportRecheckWith recheckData config
+     | None             -> Property.reportWith config
 
 let tryRaise (report : Report) : unit =
   match report.Status with
-  | Failed failureData ->
-      let msg =
-        Report.render report                                                                                              + Environment.NewLine +
-        "This failure can be reproduced using:"                                                                           + Environment.NewLine +
-        $"[<Recheck(size = {failureData.Size}, value = {failureData.Seed.Value}UL, gamma = {failureData.Seed.Gamma}UL)>]" + Environment.NewLine
-      raise (Exception msg)
+  | Failed _ -> report |> Report.render |> Exception |> raise // todo: make it print the attribute (instead of using the default Hedgehog output)
   | _ -> Report.tryRaise report
