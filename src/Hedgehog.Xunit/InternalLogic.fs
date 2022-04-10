@@ -146,9 +146,9 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
     |> ListGen.sequence
   let gens =
     match  size, recheck with
-    | _        , Some(size, _)
-    | Some size,            _ -> gens |> Gen.resize size
-    | None     ,            _ -> gens
+    | _        , Some _ // could pull the size out of the recheckData... but it seems like it isn't necessary? Unable to write failing test.
+    | None     ,      _ -> gens
+    | Some size,      _ -> gens |> Gen.resize size
   let invoke args =
     try
       ( if testMethod.ContainsGenericParameters then

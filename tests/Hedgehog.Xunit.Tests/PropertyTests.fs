@@ -567,6 +567,23 @@ module RecheckTests =
     | Some actualRecheckData ->
       Assert.Equal(expectedRecheckData, actualRecheckData)
 
+  [<Recheck("99_99_99_")>]
+  let [<Property(Size = 1, Skip = skipReason)>] ``Recheck's Size overrides Property's Size, skipped, 99`` (_: int) = ()
+  [<Recheck("1_1_1_")>]
+  let [<Property(Size = 99, Skip = skipReason)>] ``Recheck's Size overrides Property's Size, skipped, 1`` (_: int) = ()
+  [<Fact>]
+  let ``Recheck's Size overrides Property's Size`` () =
+    let lastGennedInt test =
+      let report = InternalLogic.report (test |> getMethod) typeof<Marker>.DeclaringType null
+      let exn = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
+      System.Text.RegularExpressions.Regex.Match(exn.ToString(), "\[-?(\d+)\]").Groups.Item(1).Value |> Int32.Parse
+    
+    let gennedWithSize99 = nameof ``Recheck's Size overrides Property's Size, skipped, 99`` |> lastGennedInt
+    gennedWithSize99 > 999_999_999 |> Assert.True
+
+    let gennedWithSize1 = nameof ``Recheck's Size overrides Property's Size, skipped, 1`` |> lastGennedInt
+    gennedWithSize1 < 100 |> Assert.True
+
 [<Properties(Size=1)>]
 module SizeTests =
   type private Marker = class end
