@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.4.0 (2022-05-01)
+
+* Updated to Hedgehog.Experimental 0.6.0
+
 ### 0.3.0 (2021-09-29)
 
 * Tests decorated with `PropertyAttribute` may have generics in their parameter types and return types.
