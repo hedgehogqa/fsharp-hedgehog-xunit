@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.4.1 (2022-05-01)
+
+* Updated to Hedgehog.Experimental 0.6.1
+
 ### 0.4.0 (2022-05-01)
 
 * Updated to Hedgehog.Experimental 0.6.0
