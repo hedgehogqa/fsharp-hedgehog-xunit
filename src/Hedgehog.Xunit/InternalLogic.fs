@@ -16,7 +16,7 @@ open System.Reflection
 open System
 open Hedgehog.Xunit
 
-type private Marker = class end
+type private Marker = class end // helps with using System.Reflection
 let private genxAutoBoxWith<'T> x = x |> GenX.autoWith<'T> |> Gen.map box
 let private genxAutoBoxWithMethodInfo =
   typeof<Marker>.DeclaringType.GetTypeInfo().GetDeclaredMethod(nameof genxAutoBoxWith)
@@ -88,25 +88,25 @@ open System.Threading.Tasks
 open System.Threading
 open System.Linq
 
-let rec toProperty (x: obj) =
+let rec yieldAndCheckReturnValue (x: obj) =
   match x with
   | :? bool        as b -> if not b then TestReturnedFalseException() |> raise
-  | :? Task<unit>  as t -> Async.AwaitTask t |> toProperty
+  | :? Task<unit>  as t -> Async.AwaitTask t |> yieldAndCheckReturnValue
   | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition().IsSubclassOf typeof<Task> ->
     typeof<Async>
       .GetMethods()
       .First(fun x -> x.Name = nameof Async.AwaitTask && x.IsGenericMethod)
       .MakeGenericMethod(x.GetType().GetGenericArguments())
       .Invoke(null, [|x|])
-    |> toProperty
-  | :? Task        as t -> Async.AwaitTask t |> toProperty
-  | :? Async<unit> as a -> Async.RunSynchronously(a, cancellationToken = CancellationToken.None) |> toProperty
+    |> yieldAndCheckReturnValue
+  | :? Task        as t -> Async.AwaitTask t |> yieldAndCheckReturnValue
+  | :? Async<unit> as a -> Async.RunSynchronously(a, cancellationToken = CancellationToken.None) |> yieldAndCheckReturnValue
   | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition() = typedefof<Async<_>> ->
     typeof<Async> // Invoked with Reflection because we can't cast an Async<MyType> to Async<obj> https://stackoverflow.com/a/26167206
       .GetMethod(nameof Async.RunSynchronously)
       .MakeGenericMethod(x.GetType().GetGenericArguments())
       .Invoke(null, [| x; None; Some CancellationToken.None |])
-    |> toProperty
+    |> yieldAndCheckReturnValue
   | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition() = typedefof<Result<_,_>> ->
     typeof<Marker>
       .DeclaringType
@@ -114,7 +114,7 @@ let rec toProperty (x: obj) =
       .GetDeclaredMethod(nameof resultIsOk)
       .MakeGenericMethod(x.GetType().GetGenericArguments())
       .Invoke(null, [|x|])
-    |> toProperty
+    |> yieldAndCheckReturnValue
   | _                   -> ()
 
 let dispose (o:obj) =
@@ -158,8 +158,11 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
           |> fun x -> testMethod.MakeGenericMethod x
         else
           testMethod
-      ) |> fun x -> x.Invoke(testClassInstance, args |> Array.ofList)
-      |> toProperty
+      ) |> fun testMethod -> testMethod.Invoke(testClassInstance, args |> Array.ofList)
+      // `testMethod` is the body of a method that has been decorated with the [<Property>] attribute.
+      // Above, we `Invoke` `testMethod`. Invoke returns whatever `testMethod` returns.
+      // The return value is piped into `yieldAndCheckReturnValue`, which awaits, or asserts that the value is true, or is in the `Ok` state, etc.
+      |> yieldAndCheckReturnValue
     finally
       List.iter dispose args
   let config =
