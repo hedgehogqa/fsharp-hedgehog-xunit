@@ -567,6 +567,14 @@ module RecheckTests =
     | Some actualRecheckData ->
       Assert.Equal(expectedRecheckData, actualRecheckData)
 
+  let mutable runs = 0
+  [<Property>]
+  [<Recheck("33_6868290028601943647_16954941586199361379_10110110111101111110")>]
+  let ``recheck runs once`` (i: int) =
+    runs <- runs + 1
+    Assert.Equal(1, runs)
+    //Assert.True(i < 100) // used to generate the Recheck Data
+
   [<Recheck("99_99_99_")>]
   let [<Property(Size = 1, Skip = skipReason)>] ``Recheck's Size overrides Property's Size, skipped, 99`` (_: int) = false
   [<Recheck("1_1_1_")>]
