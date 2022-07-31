@@ -16,15 +16,37 @@ open System.Reflection
 open System
 open Hedgehog.Xunit
 
+// https://github.com/dotnet/fsharp/blob/b9942004e8ba19bf73862b69b2d71151a98975ba/src/FSharp.Core/list.fs#L861-L865
+let listTryExactlyOne (list: _ list) =
+  match list with
+  | [ x ] -> Some x
+  | _ -> None
+
+// https://github.com/dotnet/fsharp/blob/b9942004e8ba19bf73862b69b2d71151a98975ba/src/FSharp.Core/seqcore.fs#L172-L174
+let inline checkNonNull argName arg =
+  if isNull arg then
+    nullArg argName
+
+// https://github.com/dotnet/fsharp/blob/b9942004e8ba19bf73862b69b2d71151a98975ba/src/FSharp.Core/seq.fs#L1710-L1719
+let seqTryExactlyOne (source: seq<_>) =
+  checkNonNull "source" source
+  use e = source.GetEnumerator()
+
+  if e.MoveNext() then
+    let v = e.Current
+    if e.MoveNext() then None else Some v
+  else
+    None
+
 type private Marker = class end // helps with using System.Reflection
 let private genxAutoBoxWith<'T> x = x |> GenX.autoWith<'T> |> Gen.map box
 let private genxAutoBoxWithMethodInfo =
-  typeof<Marker>.DeclaringType.GetTypeInfo().GetDeclaredMethod(nameof genxAutoBoxWith)
+  typeof<Marker>.DeclaringType.GetTypeInfo().GetDeclaredMethod "genxAutoBoxWith"
 
 let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
   let classAutoGenConfig, classAutoGenConfigArgs, classTests, classShrinks, classSize =
     testClass.GetCustomAttributes(typeof<PropertiesAttribute>)
-    |> Seq.tryExactlyOne
+    |> seqTryExactlyOne
     |> Option.map (fun x -> x :?> PropertiesAttribute)
     |> function
     | Some x -> x.GetAutoGenConfig, x.GetAutoGenConfigArgs, x.GetTests, x.GetShrinks, x.GetSize
@@ -43,7 +65,7 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
   let recheck =
     typeof<RecheckAttribute>
     |> testMethod.GetCustomAttributes
-    |> Seq.tryExactlyOne
+    |> seqTryExactlyOne
     |> Option.map (fun x ->
       x
       :?> RecheckAttribute
@@ -57,15 +79,16 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
       |> Seq.filter (fun p ->
         p.IsStatic &&
         p.ReturnType = typeof<AutoGenConfig>
-      ) |> Seq.tryExactlyOne
-      |> Option.requireSome $"{t.FullName} must have exactly one static property that returns an {nameof AutoGenConfig}.
+      ) |> seqTryExactlyOne
+      |> Option.requireSome (sprintf "%s must have exactly one static property that returns an AutoGenConfig.
 
 An example type definition:
 
-type {t.Name} =
+type %s =
   static member __ =
     GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
-"       |> fun methodInfo ->
+" t.FullName t.Name)
+      |> fun methodInfo ->
         let methodInfo =
           if methodInfo.IsGenericMethod then
             methodInfo.GetParameters()
@@ -82,7 +105,7 @@ type {t.Name} =
 let resultIsOk r =
   match r with
   | Ok _ -> true
-  | Error e -> failwith $"Result is in the Error case with the following value:{Environment.NewLine}%A{e}"
+  | Error e -> failwithf "Result is in the Error case with the following value:%s%A" Environment.NewLine e
 
 open System.Threading.Tasks
 open System.Threading
@@ -95,7 +118,7 @@ let rec yieldAndCheckReturnValue (x: obj) =
   | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition().IsSubclassOf typeof<Task> ->
     typeof<Async>
       .GetMethods()
-      .First(fun x -> x.Name = nameof Async.AwaitTask && x.IsGenericMethod)
+      .First(fun x -> x.Name = "AwaitTask" && x.IsGenericMethod)
       .MakeGenericMethod(x.GetType().GetGenericArguments())
       .Invoke(null, [|x|])
     |> yieldAndCheckReturnValue
@@ -103,7 +126,7 @@ let rec yieldAndCheckReturnValue (x: obj) =
   | :? Async<unit> as a -> Async.RunSynchronously(a, cancellationToken = CancellationToken.None) |> yieldAndCheckReturnValue
   | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition() = typedefof<Async<_>> ->
     typeof<Async> // Invoked with Reflection because we can't cast an Async<MyType> to Async<obj> https://stackoverflow.com/a/26167206
-      .GetMethod(nameof Async.RunSynchronously)
+      .GetMethod("RunSynchronously")
       .MakeGenericMethod(x.GetType().GetGenericArguments())
       .Invoke(null, [| x; None; Some CancellationToken.None |])
     |> yieldAndCheckReturnValue
@@ -111,7 +134,7 @@ let rec yieldAndCheckReturnValue (x: obj) =
     typeof<Marker>
       .DeclaringType
       .GetTypeInfo()
-      .GetDeclaredMethod(nameof resultIsOk)
+      .GetDeclaredMethod("resultIsOk")
       .MakeGenericMethod(x.GetType().GetGenericArguments())
       .Invoke(null, [|x|])
     |> yieldAndCheckReturnValue
