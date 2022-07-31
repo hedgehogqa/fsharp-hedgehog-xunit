@@ -568,9 +568,9 @@ module RecheckTests =
       Assert.Equal(expectedRecheckData, actualRecheckData)
 
   [<Recheck("99_99_99_")>]
-  let [<Property(Size = 1, Skip = skipReason)>] ``Recheck's Size overrides Property's Size, skipped, 99`` (_: int) = ()
+  let [<Property(Size = 1, Skip = skipReason)>] ``Recheck's Size overrides Property's Size, skipped, 99`` (_: int) = false
   [<Recheck("1_1_1_")>]
-  let [<Property(Size = 99, Skip = skipReason)>] ``Recheck's Size overrides Property's Size, skipped, 1`` (_: int) = ()
+  let [<Property(Size = 99, Skip = skipReason)>] ``Recheck's Size overrides Property's Size, skipped, 1`` (_: int) = false
   [<Fact>]
   let ``Recheck's Size overrides Property's Size`` () =
     let lastGennedInt test =
