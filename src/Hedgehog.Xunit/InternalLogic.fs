@@ -90,7 +90,7 @@ open System.Linq
 
 let rec toProperty (x: obj) =
   match x with
-  | :? bool        as b -> Property.ofBool b
+  | :? bool        as b -> if not b then TestReturnedFalseException() |> raise
   | :? Task<unit>  as t -> Async.AwaitTask t |> toProperty
   | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition().IsSubclassOf typeof<Task> ->
     typeof<Async>
@@ -115,7 +115,7 @@ let rec toProperty (x: obj) =
       .MakeGenericMethod(x.GetType().GetGenericArguments())
       .Invoke(null, [|x|])
     |> toProperty
-  | _                   -> Property.success ()
+  | _                   -> ()
 
 let dispose (o:obj) =
   match o with
@@ -166,7 +166,7 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
     PropertyConfig.defaultConfig
     |> withTests tests
     |> withShrinks shrinks
-  Property.forAll invoke gens
+  PropertyBuilder.property.BindReturn(gens, invoke)
   |> match recheck with
      | Some recheckData -> Property.reportRecheckWith recheckData config
      | None             -> Property.reportWith config

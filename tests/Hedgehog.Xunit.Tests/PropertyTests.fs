@@ -628,7 +628,9 @@ module ``tryRaise tests`` =
     let report = InternalLogic.report (nameof ``always fails, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
     let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
     let expectedMessage = """*** Failed! Falsifiable (after 1 test):
-[]
+[]"""
+    actual.Message.Contains(expectedMessage) |> Assert.True
+    let expectedMessage = """
 This failure can be reproduced by running:
 > Property.recheck "0_"""
-    actual.Message.StartsWith(expectedMessage) |> Assert.True
+    actual.Message.Contains(expectedMessage) |> Assert.True

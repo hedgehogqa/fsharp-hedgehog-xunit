@@ -33,6 +33,7 @@ Docs at https://github.com/dharmaturtle/fsharp-hedgehog-xunit
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Exceptions.fs" />
     <Compile Include="Attributes.fs" />
     <Compile Include="InternalLogic.fs" />
     <Compile Include="XunitOverrides.fs" />
