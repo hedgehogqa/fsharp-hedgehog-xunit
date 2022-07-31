@@ -195,10 +195,10 @@ module ``Module with <Properties> tests`` =
 This optional method attribute invokes `Property.recheck` with the given `Size` and `Seed`. It must be used with `Property`.
 
 ```f#
-[<Property(1<tests>)>]
-[<Recheck(size = 57, value = 18393374508668658328UL, gamma = 2784551999710862749UL)>]
+[<Property>]
+[<Recheck("44_13097736474433561873_6153509253234735533_")>]
 let ``this passes`` i =
-  i = 123456
+  i = 12345
 ```
 
 ## Tips
