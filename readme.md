@@ -232,9 +232,10 @@ module ___ =
     i = 13
 ```
 
-## Known issue with tuples
+<details>
+  <summary>Known issue with generating a single tuple.</summary>
 
-`GenX.autoWith` works with tuples.
+`GenX.autoWith` can generate a tuple.
 
 ```f#
 [<Fact>]
@@ -249,7 +250,7 @@ let ``This passes`` () =
   }
 ```
 
-However, blindly converting it to `Hedgehog.Xunit` will fail.
+However, blindly converting the above test to `Hedgehog.Xunit` will fail.
 
 ```f#
 type CustomTupleGen = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant (1, 2))
@@ -310,6 +311,7 @@ yields this IL
 ```
 
 [Source of IL.](https://sharplab.io/#v2:DYLgZgzgNALiCWwoBMQGoA+BbA9sgrsAKYAEAsgJ5l6FECwAUI8TCQHY4BOWAhsAGL42AYxjwcbEjxIAjEgF4pJNLMbMirAAaaAKgAt4EEmB6II2kgApLPKDICUJECXhsYAKlcxHiy/bUMLCTa+oYkAA48EBBE5ppW1rYOTi5unm72UCQA+s4yODjAPlb2QA)
+</details>
 
 [hedgehog]: https://github.com/hedgehogqa/fsharp-hedgehog
 [xunit]: https://xunit.net/
