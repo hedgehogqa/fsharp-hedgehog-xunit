@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.5.0 (2022-07-01)
+
+* Fixed a bug where Recheck ran multiple times.
+* Updated to Hedgehog.Experimental 0.7.0
+
 ### 0.4.1 (2022-05-01)
 
 * Updated to Hedgehog.Experimental 0.6.1
