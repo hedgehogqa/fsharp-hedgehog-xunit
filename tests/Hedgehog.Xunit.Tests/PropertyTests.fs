@@ -671,8 +671,8 @@ module ``returning a property runs it`` =
 
   [<Property(Skip = skipReason)>]
   let ``returning a failing property with external gen fails and shrinks, skipped`` i = property {
-    // let! a = Gen.int32 (Range.constant 1 100) // uncomment this line to make the test pass. Wat.
-    Assert.True(i <= 50)
+    let! _50 = Gen.constant 50
+    Assert.True(i <= _50)
   }
   [<Fact>]
   let ``returning a failing property with external gen fails and shrinks`` () =
