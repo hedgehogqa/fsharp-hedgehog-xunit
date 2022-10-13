@@ -111,6 +111,7 @@ open System.Threading.Tasks
 open System.Threading
 open System.Linq
 
+// awaits, or asserts that the value is true, or is in the `Ok` state, etc.
 let rec yieldAndCheckReturnValue (x: obj) =
   match x with
   | :? bool        as b -> if not b then TestReturnedFalseException() |> raise
@@ -172,27 +173,33 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
     | _        , Some _ // could pull the size out of the recheckData... but it seems like it isn't necessary? Unable to write failing test.
     | None     ,      _ -> gens
     | Some size,      _ -> gens |> Gen.resize size
-  let invoke args =
-    try
-      ( if testMethod.ContainsGenericParameters then
-          Array.create
-            (testMethod.GetGenericArguments().Length)
-            (typeof<obj>)
-          |> fun x -> testMethod.MakeGenericMethod x
-        else
-          testMethod
-      ) |> fun testMethod -> testMethod.Invoke(testClassInstance, args |> Array.ofList)
-      // `testMethod` is the body of a method that has been decorated with the [<Property>] attribute.
-      // Above, we `Invoke` `testMethod`. Invoke returns whatever `testMethod` returns.
-      // The return value is piped into `yieldAndCheckReturnValue`, which awaits, or asserts that the value is true, or is in the `Ok` state, etc.
-      |> yieldAndCheckReturnValue
-    finally
-      List.iter dispose args
+  let property =
+    let invoke args =
+      try
+        ( if testMethod.ContainsGenericParameters then
+            Array.create
+              (testMethod.GetGenericArguments().Length)
+              (typeof<obj>)
+            |> fun x -> testMethod.MakeGenericMethod x
+          else
+            testMethod
+        ) |> fun testMethod -> testMethod.Invoke(testClassInstance, args |> Array.ofList)
+        // `testMethod` is the body of a method that has been decorated with the [<Property>] attribute.
+        // Above, we `Invoke` `testMethod`. `Invoke` returns whatever `testMethod` returns.
+      finally
+        List.iter dispose args
+    if testMethod.ReturnType = typeof<Hedgehog.Property<unit>> then
+      PropertyBuilder.property.Bind(gens, fun x -> invoke x :?> Property<unit>)
+    elif testMethod.ReturnType = typeof<Hedgehog.Property<bool>> then
+      PropertyBuilder.property.Bind(gens, fun x -> invoke x :?> Property<bool>)
+      |> Property.falseToFailure
+    else
+      PropertyBuilder.property.BindReturn(gens, invoke >> yieldAndCheckReturnValue)
   let config =
     PropertyConfig.defaultConfig
     |> withTests tests
     |> withShrinks shrinks
-  PropertyBuilder.property.BindReturn(gens, invoke)
+  property
   |> match recheck with
      | Some recheckData -> Property.reportRecheckWith recheckData config
      | None             -> Property.reportWith config
