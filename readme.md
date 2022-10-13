@@ -108,6 +108,21 @@ Hedgehog.FailedException: *** Failed! Falsifiable (after 13 tests and 2 shrinks)
 
 Tests returning `Async<Result<_,_>>` or `Task<Result<_,_>>` are run synchronously and are expected to be in the `Ok` state.
 
+Tests returning a `Property<unit>` or `Property<bool>` will have `Property.check` automatically called:
+
+```f#
+[<Property>]
+let ``returning a failing property<bool> with an external number gen fails and shrinks`` i = property {
+  let! _50 = Gen.constant 50
+  return i <= _50
+}
+
+=== Output ===
+System.Exception: *** Failed! Falsifiable (after 23 tests and 5 shrinks):
+[51]
+50
+```
+
 The `Property` attribute's constructor may take several arguments: `AutoGenConfig`, `AutoGenConfigArgs`, `Tests` (count), `Shrinks` (count), and `Size`. Since the `Property` attribute extends `Xunit.FactAttribute`, it may also take `DisplayName`, `Skip`, and `Timeout`.
 
 #### `AutoGenConfig` and `AutoGenConfigArgs`
