@@ -190,6 +190,9 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
         List.iter dispose args
     if testMethod.ReturnType = typeof<Hedgehog.Property<unit>> then
       PropertyBuilder.property.Bind(gens, fun x -> invoke x :?> Property<unit>)
+    elif testMethod.ReturnType = typeof<Hedgehog.Property<bool>> then
+      PropertyBuilder.property.Bind(gens, fun x -> invoke x :?> Property<bool>)
+      |> Property.falseToFailure
     else
       PropertyBuilder.property.BindReturn(gens, invoke >> yieldAndCheckReturnValue)
   let config =

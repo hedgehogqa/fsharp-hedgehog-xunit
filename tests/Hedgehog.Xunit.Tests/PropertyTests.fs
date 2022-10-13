@@ -679,3 +679,44 @@ module ``returning a property runs it`` =
     let report = InternalLogic.report (nameof ``returning a failing property with external gen fails and shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
     let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
     actual.Message.Contains("51") |> Assert.True
+
+  [<Property(Skip = skipReason)>]
+  let ``returning a passing property<bool> with internal gen passes, skipped`` () = property {
+    let! a = Gen.constant 13
+    return 13 = a
+  }
+  [<Fact>]
+  let ``returning a passing property<bool> with internal gen passes`` () =
+    let report = InternalLogic.report (nameof ``returning a passing property<bool> with internal gen passes, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    Assert.Equal(100<tests>, report.Tests)
+
+  [<Property(Skip = skipReason)>]
+  let ``returning a failing property<bool> with internal gen fails and shrinks, skipped`` () = property {
+    let! a = Gen.int32 (Range.constant 1 100)
+    return a <= 50
+  }
+  [<Fact>]
+  let ``returning a failing property<bool> with internal gen fails and shrinks`` () =
+    let report = InternalLogic.report (nameof ``returning a failing property<bool> with internal gen fails and shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
+    actual.Message.Contains("51") |> Assert.True
+
+  [<Property(typeof<Int13>, Skip = skipReason)>]
+  let ``returning a passing property<bool> with external gen passes, skipped`` i = property {
+    return 13 = i
+  }
+  [<Fact>]
+  let ``returning a passing property<bool> with external gen passes`` () =
+    let report = InternalLogic.report (nameof ``returning a passing property<bool> with external gen passes, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    Assert.Equal(100<tests>, report.Tests)
+
+  [<Property(Skip = skipReason)>]
+  let ``returning a failing property<bool> with external gen fails and shrinks, skipped`` i = property {
+    let! _50 = Gen.constant 50
+    return i <= _50
+  }
+  [<Fact>]
+  let ``returning a failing property<bool> with external gen fails and shrinks`` () =
+    let report = InternalLogic.report (nameof ``returning a failing property<bool> with external gen fails and shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
+    let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
+    actual.Message.Contains("51") |> Assert.True
