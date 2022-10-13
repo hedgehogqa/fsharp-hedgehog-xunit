@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.5.1 (2022-10-12)
+
+* Added support for tests that return a property.
+
 ### 0.5.0 (2022-07-01)
 
 * Fixed a bug where Recheck ran multiple times.
