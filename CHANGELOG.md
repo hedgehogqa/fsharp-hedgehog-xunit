@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.5.2 (2023-01-13)
+
+* Reduced Xunit dependencies to Xunit.Core
+
 ### 0.5.1 (2022-10-12)
 
 * Added support for tests that return a property.
