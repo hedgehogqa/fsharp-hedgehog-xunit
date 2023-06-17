@@ -19,6 +19,11 @@ type Int6() =
   inherit ParameterGeneraterBaseType<int>()
   override this.Generator = Gen.constant 6
 
+type IntCRange(max:int, min:int)=
+  inherit ParameterGeneraterBaseType<int>()
+
+  override this.Generator =  (Range.constant max min) |> Gen.int32
+
 module ``Property module tests`` =
 
   type private Marker = class end
@@ -737,4 +742,7 @@ module ``Attribute Parameter Type Tests`` =
   let ``can have different generators for for same type of parameter`` ([<Int5>] i) ([<Int6>] y) =
      i = 5 && y = 6
 
+  [<Property>]
+  let ``can restrict on range`` ([<IntCRange(min = 0, max =5 )>] i) =
+    i >= 0 && i <= 5
     
