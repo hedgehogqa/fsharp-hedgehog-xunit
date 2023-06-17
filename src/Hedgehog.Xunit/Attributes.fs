@@ -100,3 +100,14 @@ type RecheckAttribute(recheckData) =
   let _recheckData : string = recheckData
 
   member internal _.GetRecheckData = _recheckData
+
+
+
+[<AbstractClass>]
+[<AttributeUsage(AttributeTargets.Property ||| AttributeTargets.Property, AllowMultiple = false)>]
+type  ParameterGeneraterBaseType<'a>() =
+  inherit Attribute()
+  
+  abstract member  Generator : Gen<'a> 
+  member this.Box() = this.Generator |> Gen.map box
+

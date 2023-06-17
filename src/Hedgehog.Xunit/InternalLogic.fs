@@ -154,18 +154,35 @@ let withShrinks = function
   | Some x -> PropertyConfig.withShrinks x
   | None -> PropertyConfig.withoutShrinks
 
+
 let report (testMethod:MethodInfo) testClass testClassInstance =
+  let getAttributeGenerator (parameterInfo: ParameterInfo) =
+    let attributes = parameterInfo.GetCustomAttributes() |> List.ofSeq
+    if List.isEmpty attributes then 
+      None
+    else
+      attributes
+      |> List.tryPick(fun x ->
+        let attType = x.GetType().BaseType
+        if  attType.IsGenericType && attType.GetGenericTypeDefinition().IsAssignableFrom(typedefof<ParameterGeneraterBaseType<_>>) then
+          let method = attType.GetMethods() |> Array.pick(fun x -> if x.Name = "Box" then Some x else None)
+          method.Invoke(x, null) :?> Gen<obj> |> Some
+        else
+          None
+          )
+    
   let config, tests, shrinks, recheck, size = parseAttributes testMethod testClass
   let gens =
     testMethod.GetParameters()
-    |> Array.mapi (fun i p ->
-      if p.ParameterType.ContainsGenericParameters then
-        Gen.constant Unchecked.defaultof<_>
-      else
-        genxAutoBoxWithMethodInfo
-          .MakeGenericMethod(p.ParameterType)
-          .Invoke(null, [|config|])
-        :?> Gen<obj>)
+    |> Array.map (fun p ->
+      match (getAttributeGenerator p,  p.ParameterType.ContainsGenericParameters) with
+        | (Some gen, _) -> gen
+        | (_ , true) -> Gen.constant Unchecked.defaultof<_>
+        | _ -> genxAutoBoxWithMethodInfo
+                .MakeGenericMethod(p.ParameterType)
+                .Invoke(null, [|config|])
+                :?> Gen<obj>)
+     
     |> List.ofArray
     |> ListGen.sequence
   let gens =

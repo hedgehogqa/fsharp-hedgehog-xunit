@@ -11,6 +11,13 @@ module Common =
 open Common
 
 type Int13 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
+type Int5() =
+  inherit ParameterGeneraterBaseType<int>()
+  override this.Generator = Gen.constant 5
+
+type Int6() =
+  inherit ParameterGeneraterBaseType<int>()
+  override this.Generator = Gen.constant 6
 
 module ``Property module tests`` =
 
@@ -153,7 +160,6 @@ module ``Property module tests`` =
 
   [<Property>]
   let ``0 parameters passes`` () = ()
-
 
 type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
 
@@ -720,3 +726,15 @@ module ``returning a property runs it`` =
     let report = InternalLogic.report (nameof ``returning a failing property<bool> with external gen fails and shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
     let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
     actual.Message.Contains("51") |> Assert.True
+
+module ``Attribute Parameter Type Tests`` =
+
+  [<Property>]
+  let ``can define parameter as 5`` ([<Int5>] i ) =
+    Assert.StrictEqual(5, i)
+
+  [<Property>]
+  let ``can have different generators for for same type of parameter`` ([<Int5>] i) ([<Int6>] y) =
+     i = 5 && y = 6
+
+    
