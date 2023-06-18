@@ -104,7 +104,7 @@ type RecheckAttribute(recheckData) =
 
 
 [<AbstractClass>]
-[<AttributeUsage(AttributeTargets.Property ||| AttributeTargets.Property, AllowMultiple = false)>]
+[<AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)>]
 type  ParameterGeneraterBaseType<'a>() =
   inherit Attribute()
   
