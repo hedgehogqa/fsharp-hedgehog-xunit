@@ -108,6 +108,6 @@ type RecheckAttribute(recheckData) =
 type  ParameterGeneraterBaseType<'a>() =
   inherit Attribute()
   
-  abstract member  Generator : Gen<'a> 
+  abstract member Generator : Gen<'a> 
   member this.Box() = this.Generator |> Gen.map box
 
