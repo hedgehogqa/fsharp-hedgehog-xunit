@@ -157,19 +157,19 @@ let withShrinks = function
 
 let report (testMethod:MethodInfo) testClass testClassInstance =
   let getAttributeGenerator (parameterInfo: ParameterInfo) =
-    let attributes = parameterInfo.GetCustomAttributes() |> List.ofSeq
-    if List.isEmpty attributes then 
+    let attributes = parameterInfo.GetCustomAttributes()
+    if Seq.isEmpty attributes then 
       None
     else
       attributes
-      |> List.tryPick(fun x ->
+      |> Seq.tryPick(fun x ->
         let attType = x.GetType().BaseType
-        if  attType.IsGenericType && attType.GetGenericTypeDefinition().IsAssignableFrom(typedefof<ParameterGeneraterBaseType<_>>) then
+        if attType.IsGenericType && attType.GetGenericTypeDefinition().IsAssignableFrom(typedefof<ParameterGeneraterBaseType<_>>) then
           let method = attType.GetMethods() |> Array.pick(fun x -> if x.Name = "Box" then Some x else None)
           method.Invoke(x, null) :?> Gen<obj> |> Some
         else
           None
-          )
+      )
     
   let config, tests, shrinks, recheck, size = parseAttributes testMethod testClass
   let gens =

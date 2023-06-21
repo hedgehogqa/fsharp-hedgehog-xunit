@@ -11,18 +11,18 @@ module Common =
 open Common
 
 type Int13 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
+
 type Int5() =
   inherit ParameterGeneraterBaseType<int>()
-  override this.Generator = Gen.constant 5
+  override _.Generator = Gen.constant 5
 
 type Int6() =
   inherit ParameterGeneraterBaseType<int>()
-  override this.Generator = Gen.constant 6
+  override _.Generator = Gen.constant 6
 
 type IntCRange(max:int, min:int)=
   inherit ParameterGeneraterBaseType<int>()
-
-  override this.Generator =  (Range.constant max min) |> Gen.int32
+  override _.Generator = Range.constant max min |> Gen.int32
 
 module ``Property module tests`` =
 
@@ -735,14 +735,27 @@ module ``returning a property runs it`` =
 module ``Attribute Parameter Type Tests`` =
 
   [<Property>]
-  let ``can define parameter as 5`` ([<Int5>] i ) =
+  let ``can define parameter as 5`` ([<Int5>] i) =
+    Assert.StrictEqual(5, i)
+    
+  [<Property(typeof<Int13>)>]
+  let ``overrides Property's autoGenConfig`` ([<Int5>] i) =
     Assert.StrictEqual(5, i)
 
   [<Property>]
-  let ``can have different generators for for same type of parameter`` ([<Int5>] i) ([<Int6>] y) =
-     i = 5 && y = 6
+  let ``can have different generators for the same type of parameter`` ([<Int5>] five) ([<Int6>] six) =
+     five = 5 && six = 6
 
   [<Property>]
-  let ``can restrict on range`` ([<IntCRange(min = 0, max =5 )>] i) =
+  let ``can restrict on range`` ([<IntCRange(min = 0, max = 5)>] i) =
     i >= 0 && i <= 5
-    
+
+[<Properties(typeof<Int13>, 200<tests>)>]
+module ``Attribute Parameter Type Tests with Properties`` =
+  [<Property(typeof<Int13>)>]
+  let ``overrides Properties' autoGenConfig`` ([<Int5>] i) =
+    Assert.StrictEqual(5, i)
+
+  [<Property(typeof<Int13>)>]
+  let ``overrides Property's autoGenConfig`` ([<Int5>] i) =
+    Assert.StrictEqual(5, i)
