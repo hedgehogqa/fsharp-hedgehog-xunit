@@ -1,5 +1,8 @@
 # fsharp-hedgehog-xunit
 
+> ## Hedgehog can easily be used from C# go [here](/documentation/readme-cSharp.md) For C# Documentation
+
+
 [![][nuget-shield]][nuget] [![][workflow-shield]][workflow] [![Coverage Status](https://coveralls.io/repos/github/dharmaturtle/fsharp-hedgehog-xunit/badge.svg?branch=main)](https://coveralls.io/github/dharmaturtle/fsharp-hedgehog-xunit?branch=main)
 
 [Hedgehog][hedgehog] with convenience attributes for [xUnit.net][xunit].
@@ -46,12 +49,13 @@ let ``Reversing a list twice yields the original list, with Hedgehog.Xunit`` (xs
 
 `Hedgehog.Xunit` provides the following attributes:
 * [Property](#properties-attribute)  
-Converts xunit 'Fact' into a property, allowing you to easily configure property parameters.
+Converts an XUnit `Fact` into a property, allowing you to easily configure property parameters.
 * [Properties](#properties-attribute)  
 Allows the easy configuration of all properties in a test suite.
 * [Recheck](#recheck-attribute)  
 Rerun a particular test case. 
-* [ParameterGeneratorBaseType]()  Control what generatore is used on a parameter by parameter basis. configure 
+* [ParameterGeneratorBaseType](#parametergeneratorbasetype)  
+Control what generator is used on a parameter by parameter basis. 
 
 ### `Property` attribute
 ---
@@ -233,7 +237,10 @@ let ``this passes`` i =
 
 ### ParameterGeneratorBaseType
 ---
-This is the base type of an attribute that can applied property function arguments, it allows you to provide a generator on a parameter by parameter basis. Lets look at the following property:
+This is the base type of an attribute that can applied to property function arguments. It allows you to provide a generator on a argument by argument basis.
+
+Lets look at the a property where we want to specify the generator to be used for two integer arguments.
+Using a `Property` attribute on this turns out to be quite tricky as we require two different generators for the same type, we may end up with something like this, which wraps the integer value an a containing record.
 
 ```F#
 open Xunit
@@ -242,18 +249,6 @@ open Hedgehog
 let positiveInt() = Range.constant 0 System.Int32.MaxValue |> Gen.int32
 let negativeInt() = Range.constant System.Int32.MinValue 0 |> Gen.int32
 
-[<Fact>]
-let ``Positive + Negative <= Positive`` () =
-   property {
-      let! positive = positiveInt()
-      let! negative = negativeInt()
-      return positive + negative <= positive
-    } |> Property.checkBool
-```
-
-Using a `Property` attribute on this turns out to be quite tricky as we require two different generators for the same type, we may end up with something like this.
-
-```F#
 type PositiveInt  = {value : int}
 type NegativeInt = {value : int}
 
@@ -271,7 +266,7 @@ let ``Positive + Negative <= Positive`` (positive:PositiveInt) (negative:Negativ
   positive.value + negative.value <= positive.value
 ```
 
- Using the `ParameterGeneratorBaseType` attribute is would look like this:
+ Using the `ParameterGeneratorBaseType` attribute is would look like as below:
 
  ```F#
  type Posint() =
@@ -286,11 +281,33 @@ type NegInt() =
 let ``Positive + Negative <= Positive xunit`` ([<Posint>] positive) ([<NegInt>] negative) =
   positive + negative <= positive
 ```
- 
 
-  
- 
+We can also supply parameters to the generator like so:
 
+```F#
+//Using a parameterised attribute to configure the generators
+//Using attributes to configure what generator the property should use
+type IntRange(minimum:int32, maximum:int32) =
+  inherit ParameterGeneratorBaseType<int32>()
+  override this.Generator = Range.constant minimum maximum |> Gen.int32
+
+
+[<Property>]
+let ``Positive + Negative <= Positive attribute parameterised``
+  ([<IntRange(0, System.Int32.MaxValue)>] positive)
+  ([<IntRange(System.Int32.MinValue, 0)>] negative) =
+  positive + negative <= positive
+```
+
+> The code above is in [Examples](/examples/fsharp-examples/attribute-based-parameter-comparison.fs) 
+
+The attribute fulfils a very similar function to specifying the [`AutoGenConfig`](#autogenconfig-and-autogenconfigargs) parameter on the property. If all your tests use the same generators it may be more less code to use [`AutoGenConfig`](#autogenconfig-and-autogenconfigargs), which can be applied to the [`Properties`](#properties-attribute) attribute.
+Parameter generator attributes allow you to easily configure the generator per argument, useful if:  
+* A single property has multiple arguments of the same type which require different generators.
+* You want to easily configure your generators a per property basis.
+* Different properties require different generators.
+* You want to be able to see per argument what generator was used. 
+ 
 ## Tips
 
 Use named arguments to select the desired constructor overload.

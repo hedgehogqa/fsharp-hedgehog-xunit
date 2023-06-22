@@ -118,7 +118,7 @@ type RecheckAttribute(recheckData) =
 /// ```
 [<AbstractClass>]
 [<AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)>]
-type ParameterGeneratorBaseType<'a>() =
+type ParameterGenerator<'a>() =
   inherit Attribute()
   
   abstract member Generator : Gen<'a> 

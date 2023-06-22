@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Tests.fs" />
+    <Compile Include="attribute-based-parameter-comparison.fs" />
   </ItemGroup>
 
   <ItemGroup>

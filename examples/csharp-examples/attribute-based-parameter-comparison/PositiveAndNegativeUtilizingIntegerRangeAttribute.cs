@@ -1,11 +1,11 @@
 ﻿using Hedgehog;
 using Hedgehog.Xunit;
-using Gen = Hedgehog.Linq.Gen;
+using Gen_ = Hedgehog.Linq.Gen;
 using Range = Hedgehog.Linq.Range;
 
-namespace csharp_attribute_based_parameters_comparision;
+namespace csharp_examples.attribute_based_parameter_comparison;
 
-public class Int32Range : ParameterGeneratorBaseType<int>
+public class Int32Range : ParameterGenerator<int>
 {
   private readonly int _min;
   private readonly int _max;
@@ -15,7 +15,7 @@ public class Int32Range : ParameterGeneratorBaseType<int>
     _min = min;
     _max = max;
   }
-  public override Gen<int> Generator => Gen.Int32(Range.Constant(_min, _max));
+  public override Gen<int> Generator => Gen_.Int32(Range.Constant(_min, _max));
 }
 
 public class PositiveAndNegativeWithAttributes
