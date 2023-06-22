@@ -5,7 +5,7 @@ using Range = Hedgehog.Linq.Range;
 
 namespace csharp_attribute_based_parameters_comparision;
 
-public class Int32Range : ParameterGeneraterBaseType<int>
+public class Int32Range : ParameterGeneratorBaseType<int>
 {
   private readonly int _min;
   private readonly int _max;

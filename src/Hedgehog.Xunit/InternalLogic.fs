@@ -164,7 +164,7 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
       attributes
       |> List.tryPick(fun x ->
         let attType = x.GetType().BaseType
-        if  attType.IsGenericType && attType.GetGenericTypeDefinition().IsAssignableFrom(typedefof<ParameterGeneraterBaseType<_>>) then
+        if  attType.IsGenericType && attType.GetGenericTypeDefinition().IsAssignableFrom(typedefof<ParameterGeneratorBaseType<_>>) then
           let method = attType.GetMethods() |> Array.pick(fun x -> if x.Name = "Box" then Some x else None)
           method.Invoke(x, null) :?> Gen<obj> |> Some
         else
