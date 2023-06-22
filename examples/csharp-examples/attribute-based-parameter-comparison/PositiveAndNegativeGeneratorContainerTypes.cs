@@ -5,7 +5,7 @@ using Gen = Hedgehog.Linq.Gen;
 using Range = Hedgehog.Linq.Range;
 
 
-namespace csharp_attribute_based_parameters_comparision;
+namespace csharp_examples.attribute_based_parameter_comparison;
 
 public record PositiveInt(int Value);
 public record NegativeInt( int Value );
