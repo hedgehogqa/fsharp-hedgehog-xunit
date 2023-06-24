@@ -54,7 +54,7 @@ Converts an XUnit `Fact` into a property, allowing you to easily configure prope
 Allows the easy configuration of all properties in a test suite.
 * [Recheck](#recheck-attribute)  
 Rerun a particular test case. 
-* [ParameterGeneratorBaseType](#parametergeneratorbasetype)  
+* [ParameterGenerator](#parameterGenerator)  
 Control what generator is used on a parameter by parameter basis. 
 
 ### `Property` attribute
@@ -235,7 +235,7 @@ let ``this passes`` i =
   i = 12345
 ```
 
-### ParameterGeneratorBaseType
+### ParameterGenerator
 ---
 This is the base type of an attribute that can applied to property function arguments. It allows you to provide a generator on a argument by argument basis.
 
@@ -266,15 +266,15 @@ let ``Positive + Negative <= Positive`` (positive:PositiveInt) (negative:Negativ
   positive.value + negative.value <= positive.value
 ```
 
- Using the `ParameterGeneratorBaseType` attribute is would look like as below:
+ Using the `ParameterGenerator` attribute is would look like as below:
 
  ```F#
  type Posint() =
-  inherit ParameterGeneratorBaseType<int>()
+  inherit ParameterGenerator<int>()
   override this.Generator = positiveInt()
 
 type NegInt() =
-  inherit ParameterGeneratorBaseType<int>()
+  inherit ParameterGenerator<int>()
     override this.Generator = negativeInt()
 
 [<Property>]
@@ -288,7 +288,7 @@ We can also supply parameters to the generator like so:
 //Using a parameterised attribute to configure the generators
 //Using attributes to configure what generator the property should use
 type IntRange(minimum:int32, maximum:int32) =
-  inherit ParameterGeneratorBaseType<int32>()
+  inherit ParameterGenerator<int32>()
   override this.Generator = Range.constant minimum maximum |> Gen.int32
 
 

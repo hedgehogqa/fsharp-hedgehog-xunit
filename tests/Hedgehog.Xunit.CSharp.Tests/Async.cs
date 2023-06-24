@@ -6,9 +6,9 @@ namespace Hedgehog.Xunit.CSharp.Tests;
 public class Async
 {
 
-  public Task Fast()
+  internal static Task Fast()
   {
-    return Task.FromResult(0);
+    return Task.CompletedTask;
   }
 
   [Property]

@@ -80,11 +80,42 @@ public class DocumentationSamples
 
     }
 
-  //[Property(autoGenConfig: typeof(AutoGenConfigContainer), tests: 200, shrinks: 10, size: 20, autoGenConfigArgs: FSharpOption.Some(new object[] { 13, "foo" }))]
-  ////[Property(autoGenConfig: typeof(ConfigWithArgs), autoGenConfigArgs: new object[] { "foo", 13 })] 
-  //public bool constant_13_and_foo_pass(int i, int bar)
-  //   => i == 13 && bar == "foo"
-  
+    internal static Task Fast()
+    {
+      return Task.CompletedTask;
+    }
+
+    [Property]
+    public async Task Async_Task_property(
+      int i)
+    {
+      await Fast();
+      Assert.True(i == i);
+    }
+
+    [Property]
+    public Task Task_property(
+      int i)
+    {
+      Assert.True(i != i);
+      return Task.CompletedTask;
+    }
+
+
+
+  [Property]
+    public async Task<bool> Async_boolean(bool i)
+    {
+      await Fast();
+      return i || !i;
+    }
+
+    [Property]
+    public  Task<bool> Task_boolean(bool i)
+    {
+        return Task.FromResult(i || !i);
+    }
+
   [Fact]
   public void Reversing_a_list_twice_yields_the_original_list()
   {
