@@ -342,6 +342,9 @@ module ``Asynchronous tests`` =
     | _ -> failwith "impossible"
 
   open System.Threading.Tasks
+  let Fast() =
+      Task.CompletedTask
+
   [<Property(Skip = skipReason)>]
   let ``Returning Task with exception fails, skipped`` (i: int) : Task =
     if i > 10 then
@@ -355,7 +358,7 @@ module ``Asynchronous tests`` =
   [<Property(Skip = skipReason)>]
   let ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped`` (i: int) : Task<unit> =
     task {
-      do! Task.Delay 100
+      do! Fast()
       if i > 10 then
         raise <| Exception()
     }
@@ -396,6 +399,7 @@ module ``Asynchronous tests`` =
       else
         return Ok ()
     }
+
   [<Fact>]
   let ``TaskResult with Error shrinks`` () =
     assertShrunk (nameof ``TaskResult with Error shrinks, skipped``) "[11]"
