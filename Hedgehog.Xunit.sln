@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		readme.md = readme.md
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Hedgehog.Xunit.CSharp.Tests", "tests\Hedgehog.Xunit.CSharp.Tests\Hedgehog.Xunit.CSharp.Tests.csproj", "{FADA4F4C-8FAB-49CB-900C-7321910433DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FADA4F4C-8FAB-49CB-900C-7321910433DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FADA4F4C-8FAB-49CB-900C-7321910433DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FADA4F4C-8FAB-49CB-900C-7321910433DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FADA4F4C-8FAB-49CB-900C-7321910433DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
