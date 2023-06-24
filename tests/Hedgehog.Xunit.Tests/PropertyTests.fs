@@ -404,6 +404,22 @@ module ``Asynchronous tests`` =
   let ``TaskResult with Error shrinks`` () =
     assertShrunk (nameof ``TaskResult with Error shrinks, skipped``) "[11]"
 
+  [<Property(Skip = skipReason)>]
+  let ``Non Unit TaskResult with Error shrinks, skipped`` (i: int) =
+    task {
+      do! Task.Delay 100
+      if i > 10 then
+        return Error "Test fails"
+      else
+        return Ok 1
+    }
+
+  [<Fact>]
+  let ``Non Unit TaskResult with Error shrinks`` () =
+    assertShrunk (nameof ``Non Unit TaskResult with Error shrinks, skipped``) "[11]"
+
+
+
 
 module ``IDisposable test module`` =
   let mutable runs = 0
