@@ -235,14 +235,14 @@ public class Int2718
 public class PropertiesSample
 {
   [Property]
-  public void this_passes_and_runs_1(
+  public bool this_passes_and_runs_1(
     int i) =>
-    i = 13;
+    i == 13;
 
   [Property(typeof(Int2718), 2)]
-  public void this_passes_passes_and_runs_twice(
+  public bool this_passes_passes_and_runs_twice(
     int i) =>
-    i = 2718;
+    i == 2718;
 }
 ```
 
