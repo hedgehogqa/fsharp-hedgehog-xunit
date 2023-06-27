@@ -26,11 +26,11 @@ let ``Positive + Negative <= Positive`` (positive:PositiveInt) (negative:Negativ
 
 // Using attributes to configure what generator the property should use
 type Posint() =
-  inherit ParameterGenerator<int>()
+  inherit GenAttribute<int>()
   override _.Generator = positiveInt()
 
 type NegInt() =
-  inherit ParameterGenerator<int>()
+  inherit GenAttribute<int>()
     override _.Generator = negativeInt()
 
 [<Property>]
@@ -40,7 +40,7 @@ let ``Positive + Negative <= Positive attribute`` ([<Posint>] positive) ([<NegIn
 // Using a parameterised attribute to configure the generators
 // Using attributes to configure what generator the property should use
 type IntRange(minimum:int32, maximum:int32) =
-  inherit ParameterGenerator<int>()
+  inherit GenAttribute<int>()
   override _.Generator = Range.constant minimum maximum |> Gen.int32
 
 [<Property>]

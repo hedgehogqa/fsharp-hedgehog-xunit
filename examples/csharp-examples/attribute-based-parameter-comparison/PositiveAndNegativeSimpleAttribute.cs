@@ -5,12 +5,12 @@ using Range = Hedgehog.Linq.Range;
 
 namespace csharp_examples.attribute_based_parameter_comparison;
 
-public class Negative : ParameterGenerator<int>
+public class Negative : GenAttribute<int>
 {
     public override Gen<int> Generator => Gen.Int32(Range.Constant(int.MinValue, -1));
 }
 
-public class Positive : ParameterGenerator<int>
+public class Positive : GenAttribute<int>
 {
     public override Gen<int> Generator => Gen.Int32(Range.Constant(1, int.MaxValue));
 }

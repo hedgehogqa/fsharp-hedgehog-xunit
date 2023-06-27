@@ -13,15 +13,15 @@ open Common
 type Int13 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 
 type Int5() =
-  inherit ParameterGenerator<int>()
+  inherit GenAttribute<int>()
   override _.Generator = Gen.constant 5
 
 type Int6() =
-  inherit ParameterGenerator<int>()
+  inherit GenAttribute<int>()
   override _.Generator = Gen.constant 6
 
 type IntCRange(max:int, min:int)=
-  inherit ParameterGenerator<int>()
+  inherit GenAttribute<int>()
   override _.Generator = Range.constant max min |> Gen.int32
 
 module ``Property module tests`` =
