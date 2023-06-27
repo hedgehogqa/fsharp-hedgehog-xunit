@@ -57,3 +57,4 @@ paket-files
 *.ncrunchsolution
 *.ncrunchproject
 *_NCrunch_*
+*NCrunch_*
