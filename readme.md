@@ -1,7 +1,7 @@
-# fsharp-hedgehog-xunit
+# Hedgehog.Xunit
 
-> ## Hedgehog can easily be used from C# go [here](/documentation/readme-cSharp.md) For C# Documentation
-
+> **Note**
+> ## This readme is for F#. Go [here for C# documentation.](/readmeCSharp.md)
 
 [![][nuget-shield]][nuget] [![][workflow-shield]][workflow] [![Coverage Status](https://coveralls.io/repos/github/dharmaturtle/fsharp-hedgehog-xunit/badge.svg?branch=main)](https://coveralls.io/github/dharmaturtle/fsharp-hedgehog-xunit?branch=main)
 
@@ -137,9 +137,9 @@ System.Exception: *** Failed! Falsifiable (after 23 tests and 5 shrinks):
 
 ### `Property` Configuration
 ---
-The `Property` attribute's constructor may take several arguments:   
+The `Property` attribute's constructor may take several arguments:
 * [`AutoGenConfig` and  `AutoGenConfigArgs`](#autogenconfig-and-autogenconfigargs): Allow the manual control of generators
-* [`Tests`](#tests-count): Specifies the number of tests to run 
+* [`Tests`](#tests-count): Specifies the number of tests to run
 * [`Shrinks`](#shrinks-count): Specifies the number of shrinks
 
 The `Property` attribute extends `Xunit.FactAttribute`,  so it may also take `DisplayName`, `Skip`, and `Timeout`.

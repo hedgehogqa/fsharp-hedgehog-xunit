@@ -171,7 +171,7 @@ Rerun a particular test case.
 
 ### `Property` Configuration
 ---
-The `Property` attribute's constructor may take several arguments:   
+The `Property` attribute's constructor may take several arguments:
 * [`AutoGenConfig`](#autogenconfig): Allow the manual control of generators
 * [`Tests`](#tests-count): Specifies the number of tests to run 
 * [`Shrinks`](#shrinks-count): Specifies the number of shrinks

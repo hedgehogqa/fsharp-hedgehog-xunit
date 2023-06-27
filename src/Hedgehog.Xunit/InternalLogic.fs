@@ -80,7 +80,7 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
         p.IsStatic &&
         p.ReturnType = typeof<AutoGenConfig>
       ) |> seqTryExactlyOne
-      |> Option.requireSome (sprintf "%s must have exactly one static property that returns an AutoGenConfig.
+      |> Option.requireSome (sprintf "%s must have exactly one public static property that returns an AutoGenConfig.
 
 An example type definition:
 

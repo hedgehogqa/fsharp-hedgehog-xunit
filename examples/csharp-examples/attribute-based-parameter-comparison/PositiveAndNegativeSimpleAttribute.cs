@@ -7,18 +7,19 @@ namespace csharp_examples.attribute_based_parameter_comparison;
 
 public class Negative : ParameterGenerator<int>
 {
-  public override Gen<int> Generator => Gen.Int32(Range.Constant(Int32.MinValue, -1));
+    public override Gen<int> Generator => Gen.Int32(Range.Constant(int.MinValue, -1));
 }
+
 public class Positive : ParameterGenerator<int>
 {
-  public override Gen<int> Generator => Gen.Int32(Range.Constant(1, Int32.MaxValue));
+    public override Gen<int> Generator => Gen.Int32(Range.Constant(1, int.MaxValue));
 }
 
 public class PositiveAndNegativeUtilizingIntegerRangeAttribute
 {
-  [Property]
-  public bool ResultOfAddingPositiveAndNegativeLessThanPositive(
-    [Positive] int positive,
-    [Negative] int negative)
-    => positive + negative < positive;
+    [Property]
+    public bool ResultOfAddingPositiveAndNegativeLessThanPositive(
+        [Positive] int positive,
+        [Negative] int negative) =>
+            positive + negative < positive;
 }
