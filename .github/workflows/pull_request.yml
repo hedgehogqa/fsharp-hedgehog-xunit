@@ -15,8 +15,14 @@ jobs:
       uses: actions/setup-dotnet@v3
     - name: Build
       run: dotnet build -c Release "src/Hedgehog.Xunit"
-    - name: Test
+    - name: Test F#
       run: dotnet test -c Release "tests/Hedgehog.Xunit.Tests.FSharp" /p:CollectCoverage=true /p:CoverletOutput=TestResults/ /p:CoverletOutputFormat=lcov
+    - name: Test C#
+      run: dotnet test -c Release "tests/Hedgehog.Xunit.Tests.CSharp"
+    - name: Run F# Examples
+      run: dotnet test -c Release "examples/Hedgehog.Xunit.Examples.FSharp"
+    - name: Run C# Examples
+      run: dotnet test -c Release "examples/Hedgehog.Xunit.Examples.CSharp"
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
