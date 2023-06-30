@@ -445,7 +445,7 @@ module ``IDisposable test module`` =
     | _ -> failwith "impossible"
 
 
-module ``PropertyTestCaseDiscoverer works`` =
+module ``The PropertyTestCaseDiscoverer works`` =
   let mutable runs = 0
   [<Property>]
   let ``increment runs`` () =
