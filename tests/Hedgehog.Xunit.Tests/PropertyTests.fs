@@ -342,7 +342,7 @@ module ``Asynchronous tests`` =
     | _ -> failwith "impossible"
 
   open System.Threading.Tasks
-  let Fast() =
+  let FooAsync() =
       Task.CompletedTask
 
   [<Property(Skip = skipReason)>]
@@ -358,7 +358,7 @@ module ``Asynchronous tests`` =
   [<Property(Skip = skipReason)>]
   let ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped`` (i: int) : Task<unit> =
     task {
-      do! Fast()
+      do! FooAsync()
       if i > 10 then
         raise <| Exception()
     }

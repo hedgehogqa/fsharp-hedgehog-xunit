@@ -108,7 +108,7 @@ Rerun a particular test case.
 * Async and not async `Task<Boolean>` are also considered properties
 
   ```CSharp
-    internal static Task Fast()
+    internal static Task FooAsync()
     {
       return Task.CompletedTask;
     }
@@ -116,7 +116,7 @@ Rerun a particular test case.
     [Property]
     public async Task<bool> Async_boolean(bool i)
     {
-      await Fast();
+      await FooAsync();
       return i || !i;
     }
 
@@ -147,7 +147,7 @@ Rerun a particular test case.
 * If the property returns task it is considered a property and should throw an exception if the test fails
 
     ```CSharp
-    internal static Task Fast()
+    internal static Task FooAsync()
     {
       return Task.CompletedTask;
     }
@@ -156,7 +156,7 @@ Rerun a particular test case.
     public async Task Async_Task_property(
       int i)
     {
-      await Fast();
+      await FooAsync();
       Assert.True(i == i);
     }
 

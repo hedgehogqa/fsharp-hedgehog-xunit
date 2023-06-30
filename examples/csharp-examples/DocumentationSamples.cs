@@ -1,4 +1,4 @@
-﻿using Hedgehog;
+using Hedgehog;
 using Hedgehog.Linq;
 using Hedgehog.Xunit;
 using Microsoft.FSharp.Core;
@@ -87,7 +87,7 @@ public class DocumentationSamples
     public bool This_also_passes(string s, int i) =>
       s == "foo" && i == 13;
 
-    internal static Task Fast()
+    internal static Task FooAsync()
     {
         return Task.CompletedTask;
     }
@@ -96,7 +96,7 @@ public class DocumentationSamples
     public async Task Async_Task_property(
       int i)
     {
-        await Fast();
+        await FooAsync();
         Assert.True(i == i);
     }
 
@@ -111,7 +111,7 @@ public class DocumentationSamples
     [Property]
     public async Task<bool> Async_boolean(bool i)
     {
-        await Fast();
+        await FooAsync();
         return i || !i;
     }
 
