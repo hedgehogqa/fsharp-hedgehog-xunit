@@ -9,7 +9,7 @@ public class Async
       int i)
     {
         await FooAsync();
-        Assert.True(i == i);
+        Assert.StrictEqual(i, i);
     }
 
     [Property]

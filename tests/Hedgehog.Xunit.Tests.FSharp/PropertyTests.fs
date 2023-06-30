@@ -20,7 +20,7 @@ type Int6() =
   inherit GenAttribute<int>()
   override _.Generator = Gen.constant 6
 
-type IntCRange(max:int, min:int)=
+type IntConstantRange(max: int, min: int)=
   inherit GenAttribute<int>()
   override _.Generator = Range.constant max min |> Gen.int32
 
@@ -393,33 +393,28 @@ module ``Asynchronous tests`` =
   [<Property(Skip = skipReason)>]
   let ``TaskResult with Error shrinks, skipped`` (i: int) =
     task {
-      do! Task.Delay 100
+      do! FooAsync()
       if i > 10 then
         return Error ()
       else
         return Ok ()
     }
-
   [<Fact>]
   let ``TaskResult with Error shrinks`` () =
     assertShrunk (nameof ``TaskResult with Error shrinks, skipped``) "[11]"
 
   [<Property(Skip = skipReason)>]
-  let ``Non Unit TaskResult with Error shrinks, skipped`` (i: int) =
+  let ``Non-unit TaskResult with Error shrinks, skipped`` (i: int) =
     task {
-      do! Task.Delay 100
+      do! FooAsync()
       if i > 10 then
         return Error "Test fails"
       else
         return Ok 1
     }
-
   [<Fact>]
-  let ``Non Unit TaskResult with Error shrinks`` () =
-    assertShrunk (nameof ``Non Unit TaskResult with Error shrinks, skipped``) "[11]"
-
-
-
+  let ``Non-unit TaskResult with Error shrinks`` () =
+    assertShrunk (nameof ``Non-unit TaskResult with Error shrinks, skipped``) "[11]"
 
 module ``IDisposable test module`` =
   let mutable runs = 0
@@ -752,7 +747,7 @@ module ``returning a property runs it`` =
     let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
     actual.Message.Contains("51") |> Assert.True
 
-module ``Attribute Parameter Type Tests`` =
+module ``GenAttribute Tests`` =
 
   [<Property>]
   let ``can define parameter as 5`` ([<Int5>] i) =
@@ -763,19 +758,20 @@ module ``Attribute Parameter Type Tests`` =
     Assert.StrictEqual(5, i)
 
   [<Property>]
-  let ``can have different generators for the same type of parameter`` ([<Int5>] five) ([<Int6>] six) =
+  let ``can have different generators for the same parameter type`` ([<Int5>] five) ([<Int6>] six) =
      five = 5 && six = 6
 
   [<Property>]
-  let ``can restrict on range`` ([<IntCRange(min = 0, max = 5)>] i) =
+  let ``can restrict on range`` ([<IntConstantRange(min = 0, max = 5)>] i) =
     i >= 0 && i <= 5
 
-[<Properties(typeof<Int13>, 200<tests>)>]
-module ``Attribute Parameter Type Tests with Properties`` =
-  [<Property(typeof<Int13>)>]
+[<Properties(typeof<Int13>)>]
+module ``GenAttribute with Properties Tests`` =
+
+  [<Property>]
   let ``overrides Properties' autoGenConfig`` ([<Int5>] i) =
     Assert.StrictEqual(5, i)
 
   [<Property(typeof<Int13>)>]
-  let ``overrides Property's autoGenConfig`` ([<Int5>] i) =
+  let ``overrides Properties' and Property's autoGenConfig`` ([<Int5>] i) =
     Assert.StrictEqual(5, i)

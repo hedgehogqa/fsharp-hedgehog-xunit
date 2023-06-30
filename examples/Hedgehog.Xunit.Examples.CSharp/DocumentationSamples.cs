@@ -97,14 +97,14 @@ public class DocumentationSamples
       int i)
     {
         await FooAsync();
-        Assert.True(i == i);
+        Assert.StrictEqual(i, i);
     }
 
     [Property]
     public Task Task_property(
       int i)
     {
-        Assert.True(i == i);
+        Assert.StrictEqual(i, i);
         return Task.CompletedTask;
     }
 

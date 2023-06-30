@@ -160,7 +160,6 @@ let withShrinks = function
   | Some x -> PropertyConfig.withShrinks x
   | None -> PropertyConfig.withoutShrinks
 
-
 let report (testMethod:MethodInfo) testClass testClassInstance =
   let getAttributeGenerator (parameterInfo: ParameterInfo) =
     let attributes = parameterInfo.GetCustomAttributes()
@@ -176,7 +175,6 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
         else
           None
       )
-    
   let config, tests, shrinks, recheck, size = parseAttributes testMethod testClass
   let gens =
     testMethod.GetParameters()
@@ -188,7 +186,6 @@ let report (testMethod:MethodInfo) testClass testClassInstance =
                 .MakeGenericMethod(p.ParameterType)
                 .Invoke(null, [|config|])
                 :?> Gen<obj>)
-     
     |> List.ofArray
     |> ListGen.sequence
   let gens =
