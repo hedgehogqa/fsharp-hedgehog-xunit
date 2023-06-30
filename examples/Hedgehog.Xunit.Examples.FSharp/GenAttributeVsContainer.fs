@@ -1,4 +1,4 @@
-module attribute_based_parameter_comparison
+module GenAttributeVsContainer
 
 open Hedgehog
 open Hedgehog.Xunit

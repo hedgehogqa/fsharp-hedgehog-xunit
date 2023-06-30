@@ -1,10 +1,10 @@
-﻿using Hedgehog;
+﻿namespace Hedgehog.Xunit.Examples.CSharp.GenAttributeVsContainer;
+
+using Hedgehog;
 using Hedgehog.Linq;
 using Hedgehog.Xunit;
-using Gen = Hedgehog.Linq.Gen;
-using Range = Hedgehog.Linq.Range;
-
-namespace csharp_examples.attribute_based_parameter_comparison;
+using Gen = Linq.Gen;
+using Range = Linq.Range;
 
 public record PositiveInt(int Value);
 public record NegativeInt(int Value);
@@ -24,7 +24,7 @@ public class Generators
         .WithGenerator(GenNegativeInt);
 }
 
-public class PositiveAndNegativeGeneratorContainerTypes
+public class Container
 {
     [Property(typeof(Generators))]
     public bool ResultOfAddingPositiveAndNegativeLessThanPositive(

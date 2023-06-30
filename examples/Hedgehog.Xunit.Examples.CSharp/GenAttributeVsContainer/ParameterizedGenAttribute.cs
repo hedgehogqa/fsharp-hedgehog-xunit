@@ -1,9 +1,9 @@
-﻿using Hedgehog;
-using Hedgehog.Xunit;
-using Gen = Hedgehog.Linq.Gen;
-using Range = Hedgehog.Linq.Range;
+﻿namespace Hedgehog.Xunit.Examples.CSharp.GenAttributeVsContainer;
 
-namespace csharp_examples.attribute_based_parameter_comparison;
+using Hedgehog;
+using Hedgehog.Xunit;
+using Gen = Linq.Gen;
+using Range = Linq.Range;
 
 public class Int32Range : GenAttribute<int>
 {

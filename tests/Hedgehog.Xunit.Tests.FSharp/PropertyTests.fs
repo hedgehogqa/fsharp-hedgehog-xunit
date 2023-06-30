@@ -1,4 +1,4 @@
-namespace Hedgehog.Xunit.Tests
+namespace Hedgehog.Xunit.Tests.FSharp
 
 open Xunit
 open System
@@ -221,7 +221,7 @@ module ``Property module with AutoGenConfig tests`` =
     let ``Instance property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Instance property fails, skipped``)
       let e = Assert.Throws<Exception>(fun () -> InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
-      Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one public static property that returns an AutoGenConfig.
+      Assert.Equal("Hedgehog.Xunit.Tests.FSharp.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one public static property that returns an AutoGenConfig.
 
 An example type definition:
 
@@ -237,7 +237,7 @@ type NonstaticProperty =
     let ``Non AutoGenConfig static property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Non AutoGenConfig static property fails, skipped``)
       let e = Assert.Throws<Exception>(fun () -> InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
-      Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one public static property that returns an AutoGenConfig.
+      Assert.Equal("Hedgehog.Xunit.Tests.FSharp.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one public static property that returns an AutoGenConfig.
 
 An example type definition:
 

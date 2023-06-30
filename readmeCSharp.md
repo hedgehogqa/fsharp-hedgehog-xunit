@@ -64,7 +64,7 @@ Allows the easy configuration of all properties in a test suite.
 Rerun a particular test case. 
 * [GenAttribute](#GenAttribute)  Control what generator is used on a parameter by parameter basis. configure 
 
-> All code in the below is available [here](/examples/csharp-examples/DocumentationSamples.cs) 
+> All code in the below is available [here](/examples/Hedgehog.Xunit.Examples.CSharp/DocumentationSamples.cs) 
 
 ### `Property` attribute
 ---
@@ -262,7 +262,7 @@ public bool this_passes_now(int i) =>
 This is the base type of an attribute that can applied property function arguments. It allows you to provide a generator on a parameter by parameter basis.
 
 Lets look at the a property where we want to specify the generator to be used for two integer arguments.
-Using a `Property` attribute on this turns out to be quite tricky as we require two different generators for the same type, we may end up with something like [this](/examples/csharp-examples/attribute-based-parameter-comparison/PositiveAndNegativeGeneratorContainerTypes.cs). 
+Using a `Property` attribute on this turns out to be quite tricky as we require two different generators for the same type, we may end up with something like [this](/examples/Hedgehog.Xunit.Examples.CSharp/attribute-based-parameter-comparison/PositiveAndNegativeGeneratorContainerTypes.cs). 
 
 
 ```CSharp
@@ -295,7 +295,7 @@ public class PositiveAndNegativeGeneratorContainerTypes
 }
 ```
 
- Using the `GenAttribute` attribute is would look like [this](/examples//csharp-examples//attribute-based-parameter-comparison/PositiveAndNegativeSimpleAttribute.cs):
+ Using the `GenAttribute` attribute is would look like [this](/examples/Hedgehog.Xunit.Examples.CSharp/attribute-based-parameter-comparison/PositiveAndNegativeSimpleAttribute.cs):
 
  ```CSharp
 public class Negative : GenAttribute<int>
@@ -317,7 +317,7 @@ public class PositiveAndNegativeUtilizingIntegerRangeAttribute
 }
 ```
 
-We can also supply parameters to the generator like [so](/examples/csharp-examples/attribute-based-parameter-comparison/PositiveAndNegativeUtilizingIntegerRangeAttribute.cs):
+We can also supply parameters to the generator like [so](/examples/Hedgehog.Xunit.Examples.CSharp/attribute-based-parameter-comparison/PositiveAndNegativeUtilizingIntegerRangeAttribute.cs):
 
 ```F#
 //Using a parameterised attribute to configure the generators

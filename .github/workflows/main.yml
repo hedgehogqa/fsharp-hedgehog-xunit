@@ -15,12 +15,18 @@ jobs:
       uses: actions/setup-dotnet@v3
     - name: Build
       run: dotnet build -c Release "src/Hedgehog.Xunit"
-    - name: Test
-      run: dotnet test -c Release "tests/Hedgehog.Xunit.Tests" /p:CollectCoverage=true /p:CoverletOutput=TestResults/ /p:CoverletOutputFormat=lcov
+    - name: Test F#
+      run: dotnet test -c Release "tests/Hedgehog.Xunit.Tests.FSharp" /p:CollectCoverage=true /p:CoverletOutput=TestResults/ /p:CoverletOutputFormat=lcov
+    - name: Test C#
+      run: dotnet test -c Release "tests/Hedgehog.Xunit.Tests.CSharp"
+    - name: Run F# Examples
+      run: dotnet test -c Release "tests/Hedgehog.Xunit.Examples.FSharp"
+    - name: Run C# Examples
+      run: dotnet test -c Release "tests/Hedgehog.Xunit.Examples.CSharp"
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
-        path-to-lcov: tests/Hedgehog.Xunit.Tests/TestResults/coverage.info
+        path-to-lcov: tests/Hedgehog.Xunit.Tests.FSharp/TestResults/coverage.info
         github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Publish NuGet
       uses: alirezanet/publish-nuget@v3.1.0

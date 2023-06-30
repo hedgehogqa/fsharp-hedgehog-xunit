@@ -1,13 +1,13 @@
+﻿namespace Hedgehog.Xunit.Examples.CSharp;
+
+using global::Xunit.Abstractions;
 using Hedgehog;
 using Hedgehog.Linq;
 using Hedgehog.Xunit;
 using Microsoft.FSharp.Core;
-using Xunit.Abstractions;
 using static Hedgehog.Linq.Property;
-using Gen = Hedgehog.Linq.Gen;
-using Range = Hedgehog.Linq.Range;
-
-namespace csharp_examples;
+using Gen = Linq.Gen;
+using Range = Linq.Range;
 
 public class DocumentationSamples
 {

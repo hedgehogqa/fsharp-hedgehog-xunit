@@ -1,4 +1,4 @@
-﻿namespace Hedgehog.Xunit.CSharp.Tests;
+﻿namespace Hedgehog.Xunit.Tests.CSharp;
 
 public class Async
 {
