@@ -2,7 +2,7 @@
 
 public class Async
 {
-    internal static Task FooAsync() => Task.CompletedTask;
+    internal static Task FooAsync() => Task.Delay(100);
 
     [Property]
     public async Task Async_property_which_returns_task_can_run(

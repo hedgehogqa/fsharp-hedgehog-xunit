@@ -89,7 +89,7 @@ public class DocumentationSamples
 
     internal static Task FooAsync()
     {
-        return Task.CompletedTask;
+        return Task.Delay(100);
     }
 
     [Property]
@@ -105,7 +105,7 @@ public class DocumentationSamples
       int i)
     {
         Assert.StrictEqual(i, i);
-        return Task.CompletedTask;
+        return Task.Delay(100);
     }
 
     [Property]
@@ -116,9 +116,10 @@ public class DocumentationSamples
     }
 
     [Property]
-    public Task<bool> Task_boolean(bool i)
+    public async Task<bool> Task_boolean(bool i)
     {
-        return Task.FromResult(i || !i);
+        await Task.Delay(100);
+        return i || !i;
     }
 
     [Fact]

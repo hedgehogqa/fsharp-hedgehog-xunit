@@ -110,7 +110,7 @@ Rerun a particular test case.
   ```CSharp
     internal static Task FooAsync()
     {
-      return Task.CompletedTask;
+      return Task.Delay(100);
     }
     
     [Property]
@@ -121,9 +121,10 @@ Rerun a particular test case.
     }
 
     [Property]
-    public  Task<bool> Task_boolean(bool i)
+    public async Task<bool> Task_boolean(bool i)
     {
-        return Task.FromResult(i || !i);
+        await Task.Delay(100);
+        return i || !i;
     }
   ```
 
@@ -149,7 +150,7 @@ Rerun a particular test case.
     ```CSharp
     internal static Task FooAsync()
     {
-      return Task.CompletedTask;
+        return Task.Delay(100);
     }
 
     [Property]
@@ -165,7 +166,7 @@ Rerun a particular test case.
       int i)
     {
       Assert.True(i == i);
-      return Task.CompletedTask;
+      return Task.Delay(100);
     }
     ```
 

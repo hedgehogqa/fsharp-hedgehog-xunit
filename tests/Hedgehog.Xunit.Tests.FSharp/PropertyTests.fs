@@ -343,13 +343,13 @@ module ``Asynchronous tests`` =
 
   open System.Threading.Tasks
   let FooAsync() =
-      Task.CompletedTask
+      Task.Delay 100
 
   [<Property(Skip = skipReason)>]
   let ``Returning Task with exception fails, skipped`` (i: int) : Task =
     if i > 10 then
       Exception() |> Task.FromException
-    else Task.CompletedTask
+    else Task.Delay 100
   [<Fact>]
   let ``Returning Task with exception fails`` () =
     assertShrunk (nameof ``Returning Task with exception fails, skipped``) "[11]"
