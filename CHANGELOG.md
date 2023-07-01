@@ -1,5 +1,9 @@
 # Changelog
 
+### Next
+
+* Named arguments work for `Property` and `Properties` in C#
+
 ### 0.5.2 (2023-01-13)
 
 * Reduced Xunit dependencies to Xunit.Core

@@ -37,11 +37,11 @@ type PropertyAttribute(autoGenConfig, autoGenConfigArgs, tests, shrinks, size) =
   /// let myTest (i:int) = ...
   ///
   /// ```
-  member          _.AutoGenConfig     with set v = _autoGenConfig     <- Some v
-  member          _.AutoGenConfigArgs with set v = _autoGenConfigArgs <- Some v
-  member          _.Tests             with set v = _tests             <- Some v
-  member          _.Shrinks           with set v = _shrinks           <- Some v
-  member          _.Size              with set v = _size              <- Some v
+  member          _.AutoGenConfig     with set v = _autoGenConfig     <- Some v and get ():Type         = failwith "this getter only exists to make C# named arguments work"
+  member          _.AutoGenConfigArgs with set v = _autoGenConfigArgs <- Some v and get ():obj array    = failwith "this getter only exists to make C# named arguments work"
+  member          _.Tests             with set v = _tests             <- Some v and get ():int<tests>   = failwith "this getter only exists to make C# named arguments work"
+  member          _.Shrinks           with set v = _shrinks           <- Some v and get ():int<shrinks> = failwith "this getter only exists to make C# named arguments work"
+  member          _.Size              with set v = _size              <- Some v and get ():Size         = failwith "this getter only exists to make C# named arguments work"
   member internal _.GetAutoGenConfig             = _autoGenConfig
   member internal _.GetAutoGenConfigArgs         = _autoGenConfigArgs
   member internal _.GetTests                     = _tests
@@ -81,11 +81,11 @@ type PropertiesAttribute(autoGenConfig, autoGenConfigArgs, tests, shrinks, size)
   /// let myTest (i:int) = ...
   ///
   /// ```
-  member          _.AutoGenConfig     with set v = _autoGenConfig     <- Some v
-  member          _.AutoGenConfigArgs with set v = _autoGenConfigArgs <- Some v
-  member          _.Tests             with set v = _tests             <- Some v
-  member          _.Shrinks           with set v = _shrinks           <- Some v
-  member          _.Size              with set v = _size              <- Some v
+  member          _.AutoGenConfig     with set v = _autoGenConfig     <- Some v and get ():Type         = failwith "this getter only exists to make C# named arguments work"
+  member          _.AutoGenConfigArgs with set v = _autoGenConfigArgs <- Some v and get ():obj array    = failwith "this getter only exists to make C# named arguments work"
+  member          _.Tests             with set v = _tests             <- Some v and get ():int<tests>   = failwith "this getter only exists to make C# named arguments work"
+  member          _.Shrinks           with set v = _shrinks           <- Some v and get ():int<shrinks> = failwith "this getter only exists to make C# named arguments work"
+  member          _.Size              with set v = _size              <- Some v and get ():Size         = failwith "this getter only exists to make C# named arguments work"
   member internal _.GetAutoGenConfig             = _autoGenConfig
   member internal _.GetAutoGenConfigArgs         = _autoGenConfigArgs
   member internal _.GetTests                     = _tests
