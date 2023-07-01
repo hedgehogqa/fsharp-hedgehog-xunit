@@ -1,6 +1,3 @@
-using System.Threading.Tasks.Sources;
-using Hedgehog.Linq;
-
 namespace Hedgehog.Xunit.CSharp.Tests;
 
 public class Async
@@ -8,7 +5,7 @@ public class Async
 
   public Task Fast()
   {
-    return Task.FromResult(0);
+    return Task.Delay(100);
   }
 
   [Property]
