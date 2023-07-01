@@ -12,8 +12,8 @@ public class Async
   public async Task Async_property_which_returns_task_can_run(
     int i)
   {
-     await Fast();
-     Assert.True(i == i);
+    await Fast();
+    Assert.True(i == i);
   }
 
   [Property]
@@ -23,5 +23,12 @@ public class Async
     return i || !i;
   }
 
+  [Property]
+  public async Task<bool> Async_with_exception_shrinks(int i)
+  {
+    await Task.Delay(100);
+    //Assert.True(i + i == 1);
+    return true;
+  }
 
 }
