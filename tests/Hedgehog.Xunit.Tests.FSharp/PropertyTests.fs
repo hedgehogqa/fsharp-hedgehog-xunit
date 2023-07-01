@@ -349,7 +349,7 @@ module ``Asynchronous tests`` =
   let ``Returning Task with exception fails, skipped`` (i: int) : Task =
     if i > 10 then
       Exception() |> Task.FromException
-    else Task.Delay 100
+    else FooAsync()
   [<Fact>]
   let ``Returning Task with exception fails`` () =
     assertShrunk (nameof ``Returning Task with exception fails, skipped``) "[11]"
@@ -764,6 +764,12 @@ module ``GenAttribute Tests`` =
   [<Property>]
   let ``can restrict on range`` ([<IntConstantRange(min = 0, max = 5)>] i) =
     i >= 0 && i <= 5
+
+  type OtherAttribute() = inherit Attribute()
+
+  [<Property>]
+  let ``Doesn't error with OtherAttribute`` ([<OtherAttribute>][<Int5>] i) =
+    i = 5
 
 [<Properties(typeof<Int13>)>]
 module ``GenAttribute with Properties Tests`` =
