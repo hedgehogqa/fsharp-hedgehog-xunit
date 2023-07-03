@@ -750,7 +750,7 @@ module ``returning a property runs it`` =
 module ``GenAttribute Tests`` =
 
   [<Property>]
-  let ``can define parameter as 5`` ([<Int5>] i) =
+  let ``can set parameter as 5`` ([<Int5>] i) =
     Assert.StrictEqual(5, i)
     
   [<Property(typeof<Int13>)>]
