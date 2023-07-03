@@ -49,13 +49,13 @@ let ``Reversing a list twice yields the original list, with Hedgehog.Xunit`` (xs
 ## Documentation
 
 `Hedgehog.Xunit` provides the following attributes:
-* [`Property`](#-property)
+* [`[<Property>]`](#-property)
 Extends xUnit's `Fact` to call Hedgehog's `property`.
-* [`Properties`](#-properties)
+* [`[<Properties>]`](#-properties)
 Configures all [`Property`](#-property) tagged tests in a module or class.
 * [`GenAttribute`](#-genattribute)
 Set a parameter's generator.
-* [`Recheck`](#-recheck)
+* [`[<Recheck>]`](#-recheck)
 Run a test with a specific `Size` and `Seed`.
 
 ### 🔖 `[<Property>]`
