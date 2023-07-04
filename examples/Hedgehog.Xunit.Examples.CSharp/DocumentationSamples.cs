@@ -153,7 +153,7 @@ public class DocumentationSamples
     }
 
     [PropertyInt13]
-    public bool This_passes(int i) => i == 13;
+    public bool This_passes(int thirteen, [Five] int five) => thirteen == 13 && five == 5;
 
     public class PropertiesInt13Attribute : PropertiesAttribute
     {
@@ -164,7 +164,7 @@ public class DocumentationSamples
     public class ___
     {
         [Property]
-        public bool This_also_passes(int i) => i == 13;
+        public bool This_also_passes(int thirteen, [Five] int five) => thirteen == 13 && five == 5;
     }
 }
 
