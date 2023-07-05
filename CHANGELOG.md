@@ -2,7 +2,9 @@
 
 ### Next
 
+* Added `GenAttribute`, which sets a parameter's generator
 * Named arguments work for `Property` and `Properties` in C#
+* Returning a Task works in C#
 
 ### 0.5.2 (2023-01-13)
 

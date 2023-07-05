@@ -1,4 +1,4 @@
-namespace Hedgehog.Xunit.Tests
+namespace Hedgehog.Xunit.Tests.FSharp
 
 open Xunit
 open System
@@ -11,6 +11,18 @@ module Common =
 open Common
 
 type Int13 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
+
+type Int5() =
+  inherit GenAttribute<int>()
+  override _.Generator = Gen.constant 5
+
+type Int6() =
+  inherit GenAttribute<int>()
+  override _.Generator = Gen.constant 6
+
+type IntConstantRange(max: int, min: int)=
+  inherit GenAttribute<int>()
+  override _.Generator = Range.constant max min |> Gen.int32
 
 module ``Property module tests`` =
 
@@ -154,7 +166,6 @@ module ``Property module tests`` =
   [<Property>]
   let ``0 parameters passes`` () = ()
 
-
 type ``Property class tests``(output: Xunit.Abstractions.ITestOutputHelper) =
 
   [<Property>]
@@ -210,7 +221,7 @@ module ``Property module with AutoGenConfig tests`` =
     let ``Instance property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Instance property fails, skipped``)
       let e = Assert.Throws<Exception>(fun () -> InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
-      Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one static property that returns an AutoGenConfig.
+      Assert.Equal("Hedgehog.Xunit.Tests.FSharp.Property module with AutoGenConfig tests+FailingTests+NonstaticProperty must have exactly one public static property that returns an AutoGenConfig.
 
 An example type definition:
 
@@ -226,7 +237,7 @@ type NonstaticProperty =
     let ``Non AutoGenConfig static property fails`` () =
       let testMethod = typeof<Marker>.DeclaringType.GetMethod(nameof ``Non AutoGenConfig static property fails, skipped``)
       let e = Assert.Throws<Exception>(fun () -> InternalLogic.parseAttributes testMethod typeof<Marker>.DeclaringType |> ignore)
-      Assert.Equal("Hedgehog.Xunit.Tests.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one static property that returns an AutoGenConfig.
+      Assert.Equal("Hedgehog.Xunit.Tests.FSharp.Property module with AutoGenConfig tests+FailingTests+NonAutoGenConfig must have exactly one public static property that returns an AutoGenConfig.
 
 An example type definition:
 
@@ -331,11 +342,14 @@ module ``Asynchronous tests`` =
     | _ -> failwith "impossible"
 
   open System.Threading.Tasks
+  let FooAsync() =
+      Task.Delay 100
+
   [<Property(Skip = skipReason)>]
   let ``Returning Task with exception fails, skipped`` (i: int) : Task =
     if i > 10 then
       Exception() |> Task.FromException
-    else Task.CompletedTask
+    else FooAsync()
   [<Fact>]
   let ``Returning Task with exception fails`` () =
     assertShrunk (nameof ``Returning Task with exception fails, skipped``) "[11]"
@@ -344,7 +358,7 @@ module ``Asynchronous tests`` =
   [<Property(Skip = skipReason)>]
   let ``TaskBuilder (returning Task<unit>) with exception shrinks, skipped`` (i: int) : Task<unit> =
     task {
-      do! Task.Delay 100
+      do! FooAsync()
       if i > 10 then
         raise <| Exception()
     }
@@ -379,7 +393,7 @@ module ``Asynchronous tests`` =
   [<Property(Skip = skipReason)>]
   let ``TaskResult with Error shrinks, skipped`` (i: int) =
     task {
-      do! Task.Delay 100
+      do! FooAsync()
       if i > 10 then
         return Error ()
       else
@@ -389,6 +403,18 @@ module ``Asynchronous tests`` =
   let ``TaskResult with Error shrinks`` () =
     assertShrunk (nameof ``TaskResult with Error shrinks, skipped``) "[11]"
 
+  [<Property(Skip = skipReason)>]
+  let ``Non-unit TaskResult with Error shrinks, skipped`` (i: int) =
+    task {
+      do! FooAsync()
+      if i > 10 then
+        return Error "Test fails"
+      else
+        return Ok 1
+    }
+  [<Fact>]
+  let ``Non-unit TaskResult with Error shrinks`` () =
+    assertShrunk (nameof ``Non-unit TaskResult with Error shrinks, skipped``) "[11]"
 
 module ``IDisposable test module`` =
   let mutable runs = 0
@@ -414,7 +440,7 @@ module ``IDisposable test module`` =
     | _ -> failwith "impossible"
 
 
-module ``PropertyTestCaseDiscoverer works`` =
+module ``The PropertyTestCaseDiscoverer works`` =
   let mutable runs = 0
   [<Property>]
   let ``increment runs`` () =
@@ -720,3 +746,38 @@ module ``returning a property runs it`` =
     let report = InternalLogic.report (nameof ``returning a failing property<bool> with external gen fails and shrinks, skipped`` |> getMethod) typeof<Marker>.DeclaringType null
     let actual = Assert.Throws<Exception>(fun () -> InternalLogic.tryRaise report)
     actual.Message.Contains("51") |> Assert.True
+
+module ``GenAttribute Tests`` =
+
+  [<Property>]
+  let ``can set parameter as 5`` ([<Int5>] i) =
+    Assert.StrictEqual(5, i)
+    
+  [<Property(typeof<Int13>)>]
+  let ``overrides Property's autoGenConfig`` ([<Int5>] i) =
+    Assert.StrictEqual(5, i)
+
+  [<Property>]
+  let ``can have different generators for the same parameter type`` ([<Int5>] five) ([<Int6>] six) =
+     five = 5 && six = 6
+
+  [<Property>]
+  let ``can restrict on range`` ([<IntConstantRange(min = 0, max = 5)>] i) =
+    i >= 0 && i <= 5
+
+  type OtherAttribute() = inherit Attribute()
+
+  [<Property>]
+  let ``Doesn't error with OtherAttribute`` ([<OtherAttribute>][<Int5>] i) =
+    i = 5
+
+[<Properties(typeof<Int13>)>]
+module ``GenAttribute with Properties Tests`` =
+
+  [<Property>]
+  let ``overrides Properties' autoGenConfig`` ([<Int5>] i) =
+    Assert.StrictEqual(5, i)
+
+  [<Property(typeof<Int13>)>]
+  let ``overrides Properties' and Property's autoGenConfig`` ([<Int5>] i) =
+    Assert.StrictEqual(5, i)

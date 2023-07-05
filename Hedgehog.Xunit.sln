@@ -1,16 +1,22 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31612.314
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hedgehog.Xunit", "src\Hedgehog.Xunit\Hedgehog.Xunit.fsproj", "{216BE9A2-7DCC-445F-8438-B138D8CB1FE8}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hedgehog.Xunit.Tests", "tests\Hedgehog.Xunit.Tests\Hedgehog.Xunit.Tests.fsproj", "{63A8D184-519E-4061-8A74-F1EACAF3B0D5}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hedgehog.Xunit.Tests.FSharp", "tests\Hedgehog.Xunit.Tests.FSharp\Hedgehog.Xunit.Tests.FSharp.fsproj", "{63A8D184-519E-4061-8A74-F1EACAF3B0D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hedgehog.Xunit.Tests.CSharp", "tests\Hedgehog.Xunit.Tests.CSharp\Hedgehog.Xunit.Tests.CSharp.csproj", "{FD0E6589-BB1A-4A0D-B5C0-E3F2C360C16D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hedgehog.Xunit.Examples.CSharp", "examples\Hedgehog.Xunit.Examples.CSharp\Hedgehog.Xunit.Examples.CSharp.csproj", "{28392E14-0B8D-425A-B732-CF1FEF2B3078}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hedgehog.Xunit.Examples.FSharp", "examples\Hedgehog.Xunit.Examples.FSharp\Hedgehog.Xunit.Examples.FSharp.fsproj", "{9772F0D9-76F0-4ABE-A795-D901638A0684}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E5FCE96F-A6AE-434F-B901-19359F39B504}"
 	ProjectSection(SolutionItems) = preProject
 		CHANGELOG.md = CHANGELOG.md
 		readme.md = readme.md
+		readmeCSharp.md = readmeCSharp.md
 	EndProjectSection
 EndProject
 Global
@@ -27,6 +33,18 @@ Global
 		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63A8D184-519E-4061-8A74-F1EACAF3B0D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD0E6589-BB1A-4A0D-B5C0-E3F2C360C16D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD0E6589-BB1A-4A0D-B5C0-E3F2C360C16D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD0E6589-BB1A-4A0D-B5C0-E3F2C360C16D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD0E6589-BB1A-4A0D-B5C0-E3F2C360C16D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28392E14-0B8D-425A-B732-CF1FEF2B3078}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28392E14-0B8D-425A-B732-CF1FEF2B3078}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28392E14-0B8D-425A-B732-CF1FEF2B3078}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28392E14-0B8D-425A-B732-CF1FEF2B3078}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9772F0D9-76F0-4ABE-A795-D901638A0684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9772F0D9-76F0-4ABE-A795-D901638A0684}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9772F0D9-76F0-4ABE-A795-D901638A0684}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9772F0D9-76F0-4ABE-A795-D901638A0684}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

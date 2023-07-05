@@ -16,12 +16,6 @@ open System.Reflection
 open System
 open Hedgehog.Xunit
 
-// https://github.com/dotnet/fsharp/blob/b9942004e8ba19bf73862b69b2d71151a98975ba/src/FSharp.Core/list.fs#L861-L865
-let listTryExactlyOne (list: _ list) =
-  match list with
-  | [ x ] -> Some x
-  | _ -> None
-
 // https://github.com/dotnet/fsharp/blob/b9942004e8ba19bf73862b69b2d71151a98975ba/src/FSharp.Core/seqcore.fs#L172-L174
 let inline checkNonNull argName arg =
   if isNull arg then
@@ -80,7 +74,7 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
         p.IsStatic &&
         p.ReturnType = typeof<AutoGenConfig>
       ) |> seqTryExactlyOne
-      |> Option.requireSome (sprintf "%s must have exactly one static property that returns an AutoGenConfig.
+      |> Option.requireSome (sprintf "%s must have exactly one public static property that returns an AutoGenConfig.
 
 An example type definition:
 
@@ -116,11 +110,12 @@ let rec yieldAndCheckReturnValue (x: obj) =
   match x with
   | :? bool        as b -> if not b then TestReturnedFalseException() |> raise
   | :? Task<unit>  as t -> Async.AwaitTask t |> yieldAndCheckReturnValue
+  | :? Task<bool>  as t -> Async.AwaitTask t |> yieldAndCheckReturnValue
   | _ when x <> null && x.GetType().IsGenericType && x.GetType().GetGenericTypeDefinition().IsSubclassOf typeof<Task> ->
     typeof<Async>
       .GetMethods()
       .First(fun x -> x.Name = "AwaitTask" && x.IsGenericMethod)
-      .MakeGenericMethod(x.GetType().GetGenericArguments())
+      .MakeGenericMethod(x.GetType().GetGenericArguments().First())
       .Invoke(null, [|x|])
     |> yieldAndCheckReturnValue
   | :? Task        as t -> Async.AwaitTask t |> yieldAndCheckReturnValue
@@ -155,17 +150,30 @@ let withShrinks = function
   | None -> PropertyConfig.withoutShrinks
 
 let report (testMethod:MethodInfo) testClass testClassInstance =
+  let getAttributeGenerator (parameterInfo: ParameterInfo) =
+    parameterInfo.GetCustomAttributes()
+    |> Seq.tryPick(fun attr ->
+      let attrType = attr.GetType().BaseType
+      if attrType.IsGenericType && attrType.GetGenericTypeDefinition().IsAssignableFrom(typedefof<GenAttribute<_>>) then
+        attrType
+          .GetMethods()
+          .First(fun x -> x.Name = "Box")
+          .Invoke(attr, null)
+          :?> Gen<obj> |> Some
+      else
+        None
+    )
   let config, tests, shrinks, recheck, size = parseAttributes testMethod testClass
   let gens =
     testMethod.GetParameters()
-    |> Array.mapi (fun i p ->
-      if p.ParameterType.ContainsGenericParameters then
-        Gen.constant Unchecked.defaultof<_>
-      else
-        genxAutoBoxWithMethodInfo
-          .MakeGenericMethod(p.ParameterType)
-          .Invoke(null, [|config|])
-        :?> Gen<obj>)
+    |> Array.map (fun p ->
+      match (getAttributeGenerator p,  p.ParameterType.ContainsGenericParameters) with
+        | (Some gen, _) -> gen
+        | (_ , true)    -> Gen.constant Unchecked.defaultof<_>
+        | (_ , false)   -> genxAutoBoxWithMethodInfo
+                             .MakeGenericMethod(p.ParameterType)
+                             .Invoke(null, [|config|])
+                             :?> Gen<obj>)
     |> List.ofArray
     |> ListGen.sequence
   let gens =
