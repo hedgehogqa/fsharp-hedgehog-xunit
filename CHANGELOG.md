@@ -1,6 +1,6 @@
 # Changelog
 
-### Next
+### 0.6.0 (2023-07-05)
 
 * Added `GenAttribute`, which sets a parameter's generator
 * Named arguments work for `Property` and `Properties` in C#
