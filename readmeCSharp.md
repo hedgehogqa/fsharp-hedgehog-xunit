@@ -128,11 +128,11 @@ public async Task Task_with_exception_shrinks(int i)
 }
 ```
 ```
-System.Exception: *** Failed! Falsifiable (after 14 tests and 1 shrink):
+System.Exception: *** Failed! Falsifiable (after 14 tests and 2 shrinks):
 [11]
 System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
- ---> System.AggregateException: One or more errors occurred. (whoops)
- ---> System.Exception: whoops
+ ---> System.AggregateException: One or more errors occurred. (Exception of type 'System.Exception' was thrown.)
+ ---> System.Exception: Exception of type 'System.Exception' was thrown.
 ```
 A test returning an [`FSharp.Core.Result`](https://fsharp.github.io/fsharp-core-docs/reference/fsharp-core-resultmodule.html) in an `Error` state will be treated as a failure.
 
