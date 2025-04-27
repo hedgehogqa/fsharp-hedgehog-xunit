@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -28,8 +28,8 @@ Docs at https://github.com/hedgehogqa/fsharp-hedgehog-xunit
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hedgehog.Experimental" Version="0.7.0" />
-    <PackageReference Include="xunit.core" Version="2.4.2" />
+    <PackageReference Include="Hedgehog.Experimental" Version="0.9.0" />
+    <PackageReference Include="xunit.core" Version="2.9.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,10 +37,6 @@ Docs at https://github.com/hedgehogqa/fsharp-hedgehog-xunit
     <Compile Include="Attributes.fs" />
     <Compile Include="InternalLogic.fs" />
     <Compile Include="XunitOverrides.fs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="7.0.300" />
   </ItemGroup>
 
   <ItemGroup>
