@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.7.0 (2025-05-01)
+
+* Updated to .NET 8
+* Updated to Hedgehog.Experimental 0.9.0
+
 ### 0.6.0 (2023-07-05)
 
 * Added `GenAttribute`, which sets a parameter's generator
