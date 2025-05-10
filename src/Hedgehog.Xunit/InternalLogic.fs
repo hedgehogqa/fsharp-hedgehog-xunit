@@ -37,6 +37,34 @@ let private genxAutoBoxWith<'T> x = x |> GenX.autoWith<'T> |> Gen.map box
 let private genxAutoBoxWithMethodInfo =
   typeof<Marker>.DeclaringType.GetTypeInfo().GetDeclaredMethod "genxAutoBoxWith"
 
+let config (configType: Type) (configArgs: Option<obj array>) =
+  let configArgs = configArgs |> Option.defaultValue [||]
+  configType.GetMethods()
+  |> Seq.filter (fun p ->
+    p.IsStatic &&
+    p.ReturnType = typeof<AutoGenConfig>
+  ) |> seqTryExactlyOne
+  |> Option.requireSome (sprintf "%s must have exactly one public static property that returns an AutoGenConfig.
+
+An example type definition:
+
+type %s =
+  static member __ =
+    GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
+" configType.FullName configType.Name)
+  |> fun methodInfo ->
+    let methodInfo =
+      if methodInfo.IsGenericMethod then
+        methodInfo.GetParameters()
+        |> Array.map (fun p -> p.ParameterType.IsGenericParameter)
+        |> Array.zip configArgs
+        |> Array.filter snd
+        |> Array.map (fun (arg, _) -> arg.GetType())
+        |> fun argTypes -> methodInfo.MakeGenericMethod argTypes
+      else methodInfo
+    methodInfo.Invoke(null, configArgs)
+  :?> AutoGenConfig
+
 let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
   let classAutoGenConfig, classAutoGenConfigArgs, classTests, classShrinks, classSize =
     testClass.GetCustomAttributes(typeof<PropertiesAttribute>)
@@ -45,14 +73,22 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
     |> function
     | Some x -> x.GetAutoGenConfig, x.GetAutoGenConfigArgs, x.GetTests, x.GetShrinks, x.GetSize
     | None   -> None              , None                  , None      , None        , None
-  let configType, configArgs, tests, shrinks, size =
+  let config, tests, shrinks, size =
     typeof<PropertyAttribute>
     |> testMethod.GetCustomAttributes
     |> Seq.exactlyOne
     :?> PropertyAttribute
     |> fun methodAttribute ->
-      methodAttribute.GetAutoGenConfig     ++ classAutoGenConfig                                ,
-      methodAttribute.GetAutoGenConfigArgs ++ classAutoGenConfigArgs |> Option.defaultValue [||],
+      let config =
+        match classAutoGenConfig, methodAttribute.GetAutoGenConfig with
+        | Some c, Some m ->
+          let methodConfig = config m methodAttribute.GetAutoGenConfigArgs
+          let classConfig  = config c classAutoGenConfigArgs
+          AutoGenConfig.merge classConfig methodConfig
+        | Some c, None    -> config c classAutoGenConfigArgs
+        | None  , Some m  -> config m methodAttribute.GetAutoGenConfigArgs
+        | None  , None    -> GenX.defaults
+      config,
       methodAttribute.GetTests             ++ classTests                                        ,
       methodAttribute.GetShrinks           ++ classShrinks                                      ,
       methodAttribute.GetSize              ++ classSize
@@ -65,35 +101,6 @@ let parseAttributes (testMethod:MethodInfo) (testClass:Type) =
       :?> RecheckAttribute
       |> fun x -> x.GetRecheckData
     )
-  let config =
-    match configType with
-    | None -> GenX.defaults
-    | Some t ->
-      t.GetMethods()
-      |> Seq.filter (fun p ->
-        p.IsStatic &&
-        p.ReturnType = typeof<AutoGenConfig>
-      ) |> seqTryExactlyOne
-      |> Option.requireSome (sprintf "%s must have exactly one public static property that returns an AutoGenConfig.
-
-An example type definition:
-
-type %s =
-  static member __ =
-    GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
-" t.FullName t.Name)
-      |> fun methodInfo ->
-        let methodInfo =
-          if methodInfo.IsGenericMethod then
-            methodInfo.GetParameters()
-            |> Array.map (fun p -> p.ParameterType.IsGenericParameter)
-            |> Array.zip configArgs
-            |> Array.filter snd
-            |> Array.map (fun (arg, _) -> arg.GetType())
-            |> fun argTypes -> methodInfo.MakeGenericMethod argTypes
-          else methodInfo
-        methodInfo.Invoke(null, configArgs)
-      :?> AutoGenConfig
   config, tests, shrinks, recheck, size
 
 let resultIsOk r =

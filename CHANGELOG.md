@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.1 (2025-05-12)
+
+* `AutoGenConfig`s are automatically merged when using both `Properties` and `Property`.
+
 ### 0.7.0 (2025-05-01)
 
 * Updated to .NET 8
