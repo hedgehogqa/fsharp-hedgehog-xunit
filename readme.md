@@ -213,19 +213,25 @@ let ``"i" mostly ranges between -1 and 1`` i =
 This optional attribute can decorate modules or classes. It sets default arguments for [`AutoGenConfig`, `AutoGenConfigArgs`](#-autogenconfig-and-autogenconfigargs), [`Tests`](#-tests), [`Shrinks`](#-shrinks), and [`Size`](#-size). These will be overridden by any explicit arguments on `[<Property>]`.
 
 ```f#
-type Int13   = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
-type Int2718 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 2718)
-
-[<Properties(typeof<Int13>, 1<tests>)>]
-module ``Module with <Properties> tests`` =
-
-  [<Property>]
-  let ``this passes and runs once`` (i: int) =
-    i = 13
-
-  [<Property(typeof<Int2718>, 2<tests>)>]
-  let ``this passes and runs twice`` (i: int) =
-    i = 2718
+type Int13A         = static member __ =          GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13  ) |> AutoGenConfig.addGenerator (Gen.constant "A") 
+type Int2718        = static member __ =          GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 2718) 
+type Int2718Minimal = static member __ = AutoGenConfig.defaults |> AutoGenConfig.addGenerator (Gen.constant 2718) 
+ 
+[<Properties(typeof<Int13A>, 1<tests>)>] 
+module ``Module with <Properties> tests`` = 
+ 
+  [<Property>] 
+  let ``this passes and runs once`` (i: int) = 
+    i = 13 
+ 
+  [<Property(typeof<Int2718>, 2<tests>)>] 
+  let ``this passes and runs twice`` (i: int) = 
+    i = 2718 
+ 
+  [<Property(typeof<Int2718Minimal>)>] 
+  let ``the `Int13A` and `Int2718Minimal` configs are merged, so this passes`` (i: int, s: string) = 
+    // `<Property>` uses the "minimal" `AutoGenConfig.defaults`. Using `GenX.defaults` would override the `A` in `Int13A`. 
+    i = 2718 && s = "A" 
 ```
 
 ### 🔖 `GenAttribute`

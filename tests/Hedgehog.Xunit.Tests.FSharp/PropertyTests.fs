@@ -20,7 +20,7 @@ type Int6() =
   inherit GenAttribute<int>()
   override _.Generator = Gen.constant 6
 
-type IntConstantRange(max: int, min: int)=
+type IntConstantRange(max: int, min: int) =
   inherit GenAttribute<int>()
   override _.Generator = Range.constant max min |> Gen.int32
 
@@ -246,7 +246,7 @@ type NonAutoGenConfig =
     GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 13)
 ", e.Message)
 
-type Int2718 = static member __ = GenX.defaults |> AutoGenConfig.addGenerator (Gen.constant 2718)
+type Int2718 = static member __ = AutoGenConfig.defaults |> AutoGenConfig.addGenerator (Gen.constant 2718)
 
 [<Properties(typeof<Int13>, 200<tests>)>]
 module ``Module with <Properties> tests`` =
@@ -781,3 +781,20 @@ module ``GenAttribute with Properties Tests`` =
   [<Property(typeof<Int13>)>]
   let ``overrides Properties' and Property's autoGenConfig`` ([<Int5>] i) =
     Assert.StrictEqual(5, i)
+
+type Int13A =
+  static member __ =
+    AutoGenConfig.defaults
+    |> AutoGenConfig.addGenerator (Gen.constant 13)
+    |> AutoGenConfig.addGenerator (Gen.constant "A")
+
+[<Properties(typeof<Int13A>)>]
+module ``Module with <Properties(typeof<Int13A>)>`` =
+
+  [<Property>]
+  let ``Module's <Properties> works`` (i, s) =
+    i = 13 && s = "A"
+
+  [<Property(typeof<Int2718>)>]
+  let ``Module's <Properties> merges with Method level <Property>`` (i, s) =
+    i = 2718 && s = "A"
